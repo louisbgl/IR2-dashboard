@@ -1,29 +1,15 @@
 import requests
 
-# Try different import approaches for flexible module location
-try:
-    # When run from project root or as a module
-    from backend.franceGeo import FranceGeo
-except ImportError:
-    try:
-        # When run directly from backend folder
-        from franceGeo import FranceGeo
-    except ImportError:
-        # When run from some other context
-        from src.backend.franceGeo import FranceGeo
-
+from .franceGeo import FranceGeo
 class QueryINSEE:
     """
     Class for querying the INSEE API MELODI.
     """
     # API endpoints
     BASE_API_URL = "https://api.insee.fr/melodi/data"
-    REF_POPULATION_API_URL = f"{BASE_API_URL}/DS_POPULATIONS_REFERENCE"
     POPULATION_API_URL = f"{BASE_API_URL}/DS_RP_POPULATION_PRINC"
     PCS_API_URL = f"{BASE_API_URL}/DS_RP_POPULATION_COMP"
 
-    BATCH_SIZE = 200
-    
     def __init__(self, france_geo):
         """
         Initialize the QueryINSEE class.
