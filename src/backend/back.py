@@ -19,6 +19,11 @@ france_geo = FranceGeo(csv_path)
 # Create an instance of QueryINSEE
 query_insee = QueryINSEE(france_geo)
 
+@app.route('/')
+def home():
+    return "Welcome to my dashboard backend!"
+
+
 @app.route('/dashboard/search', methods=['GET'])
 def search():
     """
