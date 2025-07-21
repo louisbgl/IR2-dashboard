@@ -2,20 +2,8 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-# Try different import approaches for flexible module location
-try:
-    # When run from project root or as a module
-    from backend.franceGeo import FranceGeo
-    from backend.queryINSEE import QueryINSEE
-except ImportError:
-    try:
-        # When run directly from backend folder
-        from franceGeo import FranceGeo
-        from queryINSEE import QueryINSEE
-    except ImportError:
-        # When run from some other context
-        from src.backend.franceGeo import FranceGeo
-        from src.backend.queryINSEE import QueryINSEE
+from .franceGeo import FranceGeo
+from .queryINSEE import QueryINSEE
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
