@@ -1,0 +1,7 @@
+*.txt
+*.json
+.env
+useful/
+tests/
+__pycache__/
+manual_query.sh
