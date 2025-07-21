@@ -6,7 +6,7 @@ from .franceGeo import FranceGeo
 from .queryINSEE import QueryINSEE
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins=["https://ir2-dashboard-x.onrender.com", "http://localhost:3000"])
 
 # Get the absolute path to the script directory
 script_dir = os.path.dirname(os.path.abspath(__file__))

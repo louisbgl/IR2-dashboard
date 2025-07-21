@@ -27,7 +27,7 @@ class DashboardApp {
         card2Data: null
     };
 
-    #apiBaseUrl = 'http://localhost:5000';
+    #apiBaseUrl = 'https://ir2-dashboard.onrender.com';
 
     initialize() {
         this.#elements.searchInput = document.getElementById('searchInput');
