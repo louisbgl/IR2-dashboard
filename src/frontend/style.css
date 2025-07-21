@@ -1,0 +1,402 @@
+:root {
+    --primary-color: #219fac;          /* Teal/turquoise */
+    --secondary-color: #f9b140;        /* Orange */
+    --accent-color: #f9b140;           /* Orange (same as secondary) */
+    --text-color: #333;
+    --light-bg: #ffffff;
+    --border-color: #e0e0e0;
+    
+    /* Entity type colors */
+    --region-color: rgba(33, 159, 172, 0.1);      /* Light teal */
+    --department-color: rgba(33, 159, 172, 0.15); /* Slightly darker light teal */
+    --intercommunality-color: rgba(249, 177, 64, 0.1); /* Light orange */
+    --commune-color: rgba(249, 177, 64, 0.15);    /* Slightly darker light orange */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+h1, h2, h3, h4 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+header h1 {
+    color: white;
+}
+
+.dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-section {
+    width: 100%;
+}
+
+#card1 {
+    display: none;
+    width: 100%;
+}
+
+#card2 {
+    display: none;
+    width: 100%;
+}
+
+.search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.search-button {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: #e8a030;
+}
+
+#searchResults {
+    margin-top: 20px;
+}
+
+.result-section {
+    margin-bottom: 15px;
+}
+
+.result-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-info {
+    display: flex;
+    align-items: center;
+}
+
+/* Entity type colors */
+.result-region {
+    background-color: var(--region-color);
+    border-left: 4px solid var(--primary-color);
+}
+
+.result-departement {
+    background-color: var(--department-color);
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Keep the old class for compatibility with existing code */
+.result-department {
+    background-color: var(--department-color);
+    border-left: 4px solid var(--primary-color);
+}
+
+.result-epci {
+    background-color: var(--intercommunality-color);
+    border-left: 4px solid var(--secondary-color);
+}
+
+/* Keep the old class for compatibility with existing code */
+.result-intercommunality {
+    background-color: var(--intercommunality-color);
+    border-left: 4px solid var(--secondary-color);
+}
+
+.result-commune {
+    background-color: var(--commune-color);
+    border-left: 4px solid var(--secondary-color);
+}
+
+.result-name {
+    font-weight: bold;
+}
+
+.result-code {
+    color: #666;
+    margin-left: 3em; 
+    min-width: 80px;
+}
+
+.select-button {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.select-button:hover {
+    background-color: #e8a030;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    display: none;
+    color: var(--accent-color);
+    background-color: #ffeded;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.result-list-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.result-section {
+    margin-bottom: 20px;
+}
+
+/* Table styling (for both population and PCS tables) */
+.population-table,
+.pcs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.population-table th,
+.population-table td,
+.pcs-table th,
+.pcs-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.population-table th,
+.pcs-table th {
+    background-color: var(--light-bg);
+    font-weight: 600;
+}
+
+.population-table tr:nth-child(even),
+.pcs-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.population-table td:last-child,
+.pcs-table td:nth-child(2),
+.pcs-table td:nth-child(3) {
+    text-align: right;
+}
+
+.pcs-table .total-row {
+    background-color: #e9e9e9;
+    font-weight: bold;
+}
+
+.year-selector {
+    margin-bottom: 15px;
+}
+
+.no-data-message {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+
+.data-source {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+    margin-top: 15px;
+}
+
+/* Raw data display styling */
+.raw-data-container {
+    margin-top: 15px;
+    width: 100%;
+}
+
+.raw-data {
+    background-color: rgba(33, 159, 172, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 10px;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.raw-data h5 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+
+.raw-data pre {
+    background-color: #fff;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* Reusable cross-table styling (population, PCS, etc.) */
+.data-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-top: 15px;
+    border: 1px solid var(--border-color); /* Outer border */
+}
+
+/* Top-left corner cell: "Année" */
+.data-table thead th:first-child {
+    background-color: #e0e0e0;  /* darker gray for emphasis */
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+/* Header cells: top row */
+.data-table thead th {
+    background-color: #f1f1f1;
+    font-weight: 600;
+    color: var(--text-color);
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* First column (years): left edge */
+.data-table tbody td:first-child {
+    background-color: #f1f1f1;
+    font-weight: bold;
+    text-align: center;
+    border-right: 1px solid var(--border-color);
+}
+
+/* Table body cells (except leftmost column) */
+.data-table td {
+    background-color: #ffffff;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Row for totals or emphasis */
+.data-table .total-row td {
+    background-color: #e9e9e9;
+    font-weight: bold;
+}
+
+/* Wrapper for horizontal scrolling on small screens */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .search-container {
+        flex-direction: column;
+    }
+    
+    .search-button {
+        width: 100%;
+    }
+}

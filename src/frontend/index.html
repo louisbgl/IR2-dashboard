@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard IR2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Dashboard IR2</h1>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <div class="card search-section">
+                <h2>Rechercher une entité géographique</h2>
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" 
+                           placeholder="Rechercher par nom (région, département, intercommunalité, commune)">
+                    <button id="searchButton" class="search-button">Rechercher</button>
+                </div>
+                <div id="errorMessage" class="error-message"></div>
+                <div id="loadingIndicator" class="loading">
+                    <div class="spinner"></div>
+                    <p>Chargement en cours...</p>
+                </div>
+                <div id="searchResults"></div>
+            </div>
+
+            <div class="card" id="card1">
+                <!-- Card 1: Population totals + Y15T24 data will be shown here -->
+            </div>
+            
+            <div class="card" id="card2">
+                <!-- Card 2: Y_GE15 data will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
