@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from './getApiUrl.js';
+
 /**
  * Main application script for the IR2 Dashboard
  */
@@ -27,9 +29,12 @@ class DashboardApp {
         card2Data: null
     };
 
-    #apiBaseUrl = 'https://ir2-dashboard.onrender.com';
+    #apiBaseUrl = null;
 
-    initialize() {
+    async initialize() {
+        this.#apiBaseUrl = await getApiBaseUrl();
+        console.log('API base URL set to:', this.#apiBaseUrl);
+        
         this.#elements.searchInput = document.getElementById('searchInput');
         this.#elements.searchButton = document.getElementById('searchButton');
         this.#elements.searchResults = document.getElementById('searchResults');
