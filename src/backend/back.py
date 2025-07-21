@@ -8,7 +8,7 @@ from .queryINSEE import QueryINSEE
 app = Flask(__name__)
 CORS(app, origins=[
     "https://ir2.fr/dashboard",
-    "https://ir2-dashboard-x.onrender.com",
+    "https://ir2-dashboard.onrender.com",
     "http://localhost:5500",
     "http://127.0.0.1:5500"
 ])
