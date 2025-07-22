@@ -9,6 +9,7 @@ class QueryINSEE:
     BASE_API_URL = "https://api.insee.fr/melodi/data"
     POPULATION_API_URL = f"{BASE_API_URL}/DS_RP_POPULATION_PRINC"
     PCS_API_URL = f"{BASE_API_URL}/DS_RP_POPULATION_COMP"
+    DIPLOMES_API_URL = f"{BASE_API_URL}/DS_RP_DIPLOMES_PRINC"
 
     def __init__(self, france_geo):
         """
@@ -119,13 +120,7 @@ class QueryINSEE:
             if pcs not in sorted_result[year][age]:
                 sorted_result[year][age][pcs] = 0
 
-            sorted_result[year][age][pcs] += value
-
-        # Round values
-        for year in sorted_result:
-            for age in sorted_result[year]:
-                for pcs in sorted_result[year][age]:
-                    sorted_result[year][age][pcs] = round(sorted_result[year][age][pcs])
+            sorted_result[year][age][pcs] += round(value)
 
         return dict(sorted(sorted_result.items(), key=lambda x: x[0]))
 
@@ -163,3 +158,63 @@ class QueryINSEE:
         if debug: print(f"Response:\n{response}")
 
         return self.sort_pcs_data(response)
+    
+    @staticmethod
+    def sort_diplomes_data(response):
+        """
+        Format diplomas API response into a dict sorted by year.
+        """
+        if not response or "observations" not in response:
+            return {}
+
+        sorted_result = {}
+        for obs in response["observations"]:
+            year = obs["dimensions"]["TIME_PERIOD"]
+            diplome = obs["dimensions"]["EDUC"]
+            value = obs["measures"]["OBS_VALUE_NIVEAU"]["value"]
+
+            if year not in sorted_result:
+                sorted_result[year] = {}
+            if diplome not in sorted_result[year]:
+                sorted_result[year][diplome] = 0
+
+            sorted_result[year][diplome] += round(value)
+
+        return dict(sorted(sorted_result.items(), key=lambda x: x[0]))
+
+    def query_diplomes(self, entity_code, entity_type="commune", debug=False):
+        """
+        Query diplomas data from the INSEE API for the given entity.
+        """
+        static_filters = ["SEX=_T"]
+
+        if entity_type not in ["commune", "epci", "departement", "region"]:
+            raise ValueError("Invalid entity_type. Must be one of: commune, epci, departement, region.")
+        
+        geo_code = ""
+        if entity_type == "commune":
+            geo_code = "COM-" + entity_code
+        elif entity_type == "epci":
+            geo_code = "EPCI-" + entity_code
+        elif entity_type == "departement":
+            geo_code = "DEP-" + entity_code
+        elif entity_type == "region":
+            geo_code = "REG-" + entity_code
+
+        url = self.DIPLOMES_API_URL
+        url += f"?{static_filters[0]}"
+        for filter in static_filters[1:]:
+            url += f"&{filter}"
+        url += f"&GEO={geo_code}"
+
+        if debug: print(f"Querying diplomas for {entity_type} {entity_code} with URL:\n{url}")
+
+        response = self.make_api_request(url)
+        if not response:
+            raise Exception(f"Failed to query diplomas data for {entity_type} {entity_code}. Response: {response}")
+
+        if debug: print(f"Response:\n{response}")
+
+        result = self.sort_diplomes_data(response)
+
+        return result
