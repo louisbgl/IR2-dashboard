@@ -1,5 +1,5 @@
 const apiBaseUrlDevelopment = 'http://localhost:5000';
-const apiBaseUrlProduction  = 'https://ir2-dashboard-x.onrender.com';
+const apiBaseUrlProduction  = 'https://ir2-dashboard.onrender.com';
 
 async function getApiBaseUrl() {
     try {
