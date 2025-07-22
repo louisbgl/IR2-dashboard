@@ -75,6 +75,11 @@ header h1 {
     width: 100%;
 }
 
+#card3 {
+    display: none;
+    width: 100%;
+}
+
 .search-container {
     display: flex;
     gap: 10px;

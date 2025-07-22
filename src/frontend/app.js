@@ -18,7 +18,8 @@ class DashboardApp {
         errorMessage: null,
         loadingIndicator: null,
         card1: null,
-        card2: null
+        card2: null,
+        card3: null
     };
 
     #currentEntityData = {
@@ -26,7 +27,8 @@ class DashboardApp {
         name: null,
         type: null,
         card1Data: null,
-        card2Data: null
+        card2Data: null,
+        card3Data: null
     };
 
     #apiBaseUrl = null;
@@ -34,7 +36,7 @@ class DashboardApp {
     async initialize() {
         this.#apiBaseUrl = await getApiBaseUrl();
         console.log('API base URL set to:', this.#apiBaseUrl);
-        
+
         this.#elements.searchInput = document.getElementById('searchInput');
         this.#elements.searchButton = document.getElementById('searchButton');
         this.#elements.searchResults = document.getElementById('searchResults');
@@ -42,6 +44,7 @@ class DashboardApp {
         this.#elements.loadingIndicator = document.getElementById('loadingIndicator');
         this.#elements.card1 = document.getElementById('card1');
         this.#elements.card2 = document.getElementById('card2');
+        this.#elements.card3 = document.getElementById('card3');
 
         this.#setupEventListeners();
         console.log('Dashboard application initialized');
@@ -162,7 +165,8 @@ class DashboardApp {
             name: entityName,
             type: entityType,
             card1Data: null,
-            card2Data: null
+            card2Data: null,
+            card3Data: null
         };
 
         if (this.#elements.searchResults) {
@@ -182,23 +186,36 @@ class DashboardApp {
         this.#hideError();
 
         try {
-            const [populationResponse, pcsResponse] = await Promise.all([
+            const [
+                populationResponse,
+                pcsResponse,
+                diplomaResponse
+            ] = await Promise.all([
                 fetch(`${this.#apiBaseUrl}/dashboard/population?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
-                fetch(`${this.#apiBaseUrl}/dashboard/pcs?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
+                fetch(`${this.#apiBaseUrl}/dashboard/pcs?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
+                fetch(`${this.#apiBaseUrl}/dashboard/diploma?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
             ]);
 
             const populationData = await populationResponse.json();
             const pcsData = await pcsResponse.json();
+            const diplomaData = await diplomaResponse.json();
 
             if (populationData.status === 'error') {
                 throw new Error(populationData.message || 'Erreur récupération population');
             }
+            console.log('Successfully fetched population data.');
             if (pcsData.status === 'error') {
                 throw new Error(pcsData.message || 'Erreur récupération PCS');
             }
+            console.log('Successfully fetched PCS data.');
+            if (diplomaData.status === 'error') {
+                throw new Error(diplomaData.message || 'Erreur récupération diplôme');
+            }
+            console.log('Successfully fetched diploma data.');
 
             this.#currentEntityData.card1Data = populationData.data;
             this.#currentEntityData.card2Data = pcsData.data;
+            this.#currentEntityData.card3Data = diplomaData.data;
 
             this.displayAllData();
         } catch (error) {
@@ -214,6 +231,11 @@ class DashboardApp {
                 this.#elements.card2.innerHTML = '';
                 this.#elements.card2.style.display = 'none';
             }
+
+            if (this.#elements.card3) {
+                this.#elements.card3.innerHTML = '';
+                this.#elements.card3.style.display = 'none';
+            }
         } finally {
             this.#showLoading(false);
         }
@@ -222,6 +244,7 @@ class DashboardApp {
     displayAllData() {
         this.displayCard1();
         this.displayCard2();
+        this.displayCard3();
     }
 
     displayCard1() {
@@ -273,20 +296,18 @@ class DashboardApp {
                             </tr>
                         </thead>
                         <tbody>
-        `;
-
-        years.forEach(year => {
-            html += `<tr><td>${year}</td>`;
-            ageGroups.forEach(age => {
-                const value = card1Data[year][age] ?? '—';
-                html += `<td>${value}</td>`;
-            });
-            html += `</tr>`;
-        });
-
-        html += `
+                            ${years.map(year => `
+                                <tr>
+                                    <td>${year}</td>
+                                    ${ageGroups.map(age => {
+                                        const value = card1Data[year][age] ?? '—';
+                                        return `<td>${value}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
+                    <small class="data-note">Source : API MELODI, INSEE</small>
                 </div>
             </div>
         `;
@@ -349,20 +370,96 @@ class DashboardApp {
                             </tr>
                         </thead>
                         <tbody>
-        `;
-
-        years.forEach(year => {
-            html += `<tr><td>${year}</td>`;
-            pcsGroups.forEach(pcs => {
-                const value = card2Data[year]["Y_GE15"][pcs] ?? '—';
-                html += `<td>${value}</td>`;
-            });
-            html += `</tr>`;
-        });
-
-        html += `
+                            ${years.map(year => `
+                                <tr>
+                                    <td>${year}</td>
+                                    ${pcsGroups.map(pcs => {
+                                        const value = card2Data[year]["Y_GE15"][pcs] ?? '—';
+                                        return `<td>${value}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
+                    <small class="data-note">Source : API MELODI, INSEE</small>
+                </div>
+            </div>
+        `;
+
+        cardElement.innerHTML = html;
+        cardElement.style.display = 'block';
+    }
+
+    displayCard3() {
+        const cardElement = this.#elements.card3;
+        if (!cardElement || !this.#currentEntityData) return;
+
+        const { name, type, card3Data } = this.#currentEntityData;
+
+        const typeLabels = {
+            region: 'la région',
+            departement: 'le département',
+            epci: 'l\'intercommunalité',
+            commune: 'la commune'
+        };
+        const typeLabel = typeLabels[type] || type;
+
+        if (!card3Data || !card3Data['2022']) {
+            cardElement.innerHTML = `
+                <h3>Populations par niveau d'éducation pour ${typeLabel} ${name}</h3>
+                <div class="no-data-message">
+                    <p>Aucune donnée disponible pour l'année 2022.</p>
+                </div>`;
+            cardElement.style.display = 'block';
+            return;
+        }
+
+        const year = '2022';
+        const diplomaGroupOrder = [
+            '001T100_RP', // Aucun diplôme
+            '200_RP',     // BEPC/Brevet
+            '300_RP',     // CAP/BEP
+            '350T351_RP', // Baccalauréat
+            '500_RP',     // BAC+2
+            '600_RP',     // BAC+3/4
+            '700_RP'      // BAC+5 et plus
+        ];
+
+        const diplomaGroupMeanings = {
+            '001T100_RP': 'Aucun diplôme',
+            '200_RP': 'BEPC/Brevet',
+            '300_RP': 'CAP/BEP',
+            '350T351_RP': 'Baccalauréat',
+            '500_RP': 'BAC+2',
+            '600_RP': 'BAC+3/4',
+            '700_RP': 'BAC+5 et plus'
+        };
+
+        const diplomaGroups = diplomaGroupOrder.filter(diploma => card3Data[year][diploma] !== undefined);
+
+        let html = `
+            <div class="table-card">
+                <h3>Populations par niveau d'éducation pour ${typeLabel} ${name}</h3>
+                <p class="data-note">Données disponibles uniquement pour l'année 2022.</p>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Année</th>
+                                ${diplomaGroups.map(diploma => `<th>${diplomaGroupMeanings[diploma] || diploma}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${year}</td>
+                                ${diplomaGroups.map(diploma => {
+                                    const value = card3Data[year][diploma];
+                                    return `<td>${value !== undefined ? value : '—'}</td>`;
+                                }).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                    <small class="data-note">Source : API MELODI, INSEE</small>
                 </div>
             </div>
         `;
