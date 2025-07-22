@@ -145,6 +145,41 @@ def pcs():
         }), 500
     
 
+@app.route('/dashboard/diplomes', methods=['GET'])
+def diplomes():
+    """
+    Endpoint to get diplomas data for a specific entity
+    
+    Query parameters:
+    - entity_code: The code of the entity (commune, EPCI, departement, region)
+    - entity_type: Type of entity ("commune", "epci", "departement", "region")
+    
+    Returns:
+    - JSON with diplomas data
+    """
+    entity_code = request.args.get('entity_code')
+    entity_type = request.args.get('entity_type', 'commune')
+
+    print(f"Received request for entity_code: {entity_code}, entity_type: {entity_type}")
+
+    if not entity_code:
+        return jsonify({
+            'status': 'error',
+            'message': 'Missing entity_code parameter'
+        }), 400
+    
+    try:
+        result = query_insee.query_diplomes(entity_code, entity_type)
+        return jsonify({
+            'status': 'success',
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 @app.route('/dashboard/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint"""
