@@ -145,8 +145,8 @@ def pcs():
         }), 500
     
 
-@app.route('/dashboard/diplomes', methods=['GET'])
-def diplomes():
+@app.route('/dashboard/diploma', methods=['GET'])
+def diploma():
     """
     Endpoint to get diplomas data for a specific entity
     
@@ -169,7 +169,7 @@ def diplomes():
         }), 400
     
     try:
-        result = query_insee.query_diplomes(entity_code, entity_type)
+        result = query_insee.query_diplomas(entity_code, entity_type)
         return jsonify({
             'status': 'success',
             'data': result

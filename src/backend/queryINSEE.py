@@ -160,7 +160,7 @@ class QueryINSEE:
         return self.sort_pcs_data(response)
     
     @staticmethod
-    def sort_diplomes_data(response):
+    def sort_diplomas_data(response):
         """
         Format diplomas API response into a dict sorted by year.
         """
@@ -182,7 +182,7 @@ class QueryINSEE:
 
         return dict(sorted(sorted_result.items(), key=lambda x: x[0]))
 
-    def query_diplomes(self, entity_code, entity_type="commune", debug=False):
+    def query_diplomas(self, entity_code, entity_type="commune", debug=False):
         """
         Query diplomas data from the INSEE API for the given entity.
         """
@@ -215,6 +215,6 @@ class QueryINSEE:
 
         if debug: print(f"Response:\n{response}")
 
-        result = self.sort_diplomes_data(response)
+        result = self.sort_diplomas_data(response)
 
         return result
