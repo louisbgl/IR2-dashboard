@@ -19,7 +19,8 @@ class DashboardApp {
         loadingIndicator: null,
         card1: null,
         card2: null,
-        card3: null
+        card3: null,
+        card4: null
     };
 
     #currentEntityData = {
@@ -28,7 +29,8 @@ class DashboardApp {
         type: null,
         card1Data: null,
         card2Data: null,
-        card3Data: null
+        card3Data: null,
+        card4Data: null
     };
 
     #apiBaseUrl = null;
@@ -45,6 +47,7 @@ class DashboardApp {
         this.#elements.card1 = document.getElementById('card1');
         this.#elements.card2 = document.getElementById('card2');
         this.#elements.card3 = document.getElementById('card3');
+        this.#elements.card4 = document.getElementById('card4');
 
         this.#setupEventListeners();
         console.log('Dashboard application initialized');
@@ -166,7 +169,8 @@ class DashboardApp {
             type: entityType,
             card1Data: null,
             card2Data: null,
-            card3Data: null
+            card3Data: null,
+            card4Data: null
         };
 
         if (this.#elements.searchResults) {
@@ -189,16 +193,19 @@ class DashboardApp {
             const [
                 populationResponse,
                 pcsResponse,
-                diplomaResponse
+                diplomaResponse,
+                employmentResponse
             ] = await Promise.all([
                 fetch(`${this.#apiBaseUrl}/dashboard/population?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
                 fetch(`${this.#apiBaseUrl}/dashboard/pcs?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
-                fetch(`${this.#apiBaseUrl}/dashboard/diploma?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
+                fetch(`${this.#apiBaseUrl}/dashboard/diploma?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
+                fetch(`${this.#apiBaseUrl}/dashboard/employment?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
             ]);
 
             const populationData = await populationResponse.json();
             const pcsData = await pcsResponse.json();
             const diplomaData = await diplomaResponse.json();
+            const employmentData = await employmentResponse.json();
 
             if (populationData.status === 'error') {
                 throw new Error(populationData.message || 'Erreur récupération population');
@@ -212,10 +219,15 @@ class DashboardApp {
                 throw new Error(diplomaData.message || 'Erreur récupération diplôme');
             }
             console.log('Successfully fetched diploma data.');
+            if (employmentData.status === 'error') {
+                throw new Error(employmentData.message || 'Erreur récupération emploi');
+            }
+            console.log('Successfully fetched employment data.');
 
             this.#currentEntityData.card1Data = populationData.data;
             this.#currentEntityData.card2Data = pcsData.data;
             this.#currentEntityData.card3Data = diplomaData.data;
+            this.#currentEntityData.card4Data = employmentData.data;
 
             this.displayAllData();
         } catch (error) {
@@ -236,6 +248,11 @@ class DashboardApp {
                 this.#elements.card3.innerHTML = '';
                 this.#elements.card3.style.display = 'none';
             }
+
+            if (this.#elements.card4) {
+                this.#elements.card4.innerHTML = '';
+                this.#elements.card4.style.display = 'none';
+            }
         } finally {
             this.#showLoading(false);
         }
@@ -245,6 +262,7 @@ class DashboardApp {
         this.displayCard1();
         this.displayCard2();
         this.displayCard3();
+        this.displayCard4();
     }
 
     displayCard1() {
@@ -457,6 +475,81 @@ class DashboardApp {
                                     return `<td>${value !== undefined ? value : '—'}</td>`;
                                 }).join('')}
                             </tr>
+                        </tbody>
+                    </table>
+                    <small class="data-note">Source : API MELODI, INSEE</small>
+                </div>
+            </div>
+        `;
+
+        cardElement.innerHTML = html;
+        cardElement.style.display = 'block';
+    }
+
+    displayCard4() {
+        const cardElement = this.#elements.card4;
+        if (!cardElement || !this.#currentEntityData) return;
+
+        const { name, type, card4Data } = this.#currentEntityData;
+
+        const typeLabels = {
+            region: 'la région',
+            departement: 'le département',
+            epci: 'l\'intercommunalité',
+            commune: 'la commune'
+        };
+        const typeLabel = typeLabels[type] || type;
+
+        if (!card4Data || Object.keys(card4Data).length === 0) {
+            cardElement.innerHTML = `
+                <h3>Données d'emploi pour ${typeLabel} ${name}</h3>
+                <div class="no-data-message">
+                    <p>Aucune donnée d'emploi disponible.</p>
+                </div>`;
+            cardElement.style.display = 'block';
+            return;
+        }
+
+        const years = Object.keys(card4Data).sort((a, b) => b - a);
+        const employmentFields = [
+            'population_15_64',
+            'nombre_actifs', 
+            'nombre_actifs_ayant_emploi',
+            'nombre_chomeurs',
+            'taux_emploi',
+            'taux_chomage'
+        ];
+
+        const fieldMeanings = {
+            'population_15_64': 'Population 15-64 ans',
+            'nombre_actifs': 'Nombre d\'actifs',
+            'nombre_actifs_ayant_emploi': 'Actifs ayant un emploi',
+            'nombre_chomeurs': 'Nombre de chômeurs',
+            'taux_emploi': 'Taux d\'emploi (%)',
+            'taux_chomage': 'Taux de chômage (%)'
+        };
+
+        let html = `
+            <div class="table-card">
+                <h3>Données d'emploi pour ${typeLabel} ${name}</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Année</th>
+                                ${employmentFields.map(field => `<th>${fieldMeanings[field] || field}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${years.map(year => `
+                                <tr>
+                                    <td>${year}</td>
+                                    ${employmentFields.map(field => {
+                                        const value = card4Data[year][field];
+                                        return `<td>${value !== undefined ? value : '—'}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                     <small class="data-note">Source : API MELODI, INSEE</small>

@@ -80,6 +80,11 @@ header h1 {
     width: 100%;
 }
 
+#card4 {
+    display: none;
+    width: 100%;
+}
+
 .search-container {
     display: flex;
     gap: 10px;
