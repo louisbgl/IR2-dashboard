@@ -11,7 +11,7 @@
  */
 export function createCard({ id, title, description, contentHtml, mode, onToggleMode }) {
 	const card = document.createElement('div');
-	card.className = 'card dashboard-card';
+	card.className = 'dashboard-card';
 	card.id = id;
 	
 	// Header with title and toggle button
