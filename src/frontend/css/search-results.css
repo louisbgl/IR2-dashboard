@@ -1,0 +1,179 @@
+/* search-results.css: Search results display and interaction */
+
+/* Search Results Container */
+.search-results {
+    width: var(--search-width);
+    background: var(--light-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    max-height: 0;
+    overflow: hidden;
+    transition: var(--transition-base);
+    margin-bottom: var(--space-md);
+}
+
+.search-results.expanded {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--space-lg) var(--space-xl);
+}
+
+.search-results:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+/* Results Structure */
+.result-section { 
+    margin-bottom: var(--space-lg); 
+}
+
+.result-section h3 {
+    color: var(--text-color);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-lg);
+}
+
+.result-section h4 {
+    color: var(--primary-color);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-md);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-list-container {
+    margin-bottom: var(--space-lg);
+}
+
+.result-list { 
+    list-style-type: none; 
+    padding: 0; 
+    margin: 0; 
+}
+
+/* Individual Result Items */
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+    transition: var(--transition-fast);
+}
+
+.result-item:last-child { 
+    border-bottom: none; 
+    margin-bottom: 0;
+}
+
+.result-item:hover {
+    background: var(--body-bg);
+    transform: translateX(4px);
+}
+
+.result-info { 
+    display: flex; 
+    align-items: center; 
+    flex: 1;
+}
+
+.result-name { 
+    font-weight: var(--font-weight-semibold); 
+    color: var(--text-color);
+    font-size: var(--font-size-sm);
+}
+
+.result-code { 
+    color: var(--text-secondary); 
+    margin-left: var(--space-md); 
+    min-width: 60px; 
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
+}
+
+/* Entity Type Styling */
+.result-region { 
+    background: linear-gradient(135deg, var(--region-color) 0%, rgba(33, 159, 172, 0.05) 100%);
+    border-left: 4px solid var(--primary-color); 
+}
+
+.result-departement, .result-department { 
+    background: linear-gradient(135deg, var(--department-color) 0%, rgba(249, 177, 64, 0.05) 100%);
+    border-left: 4px solid var(--primary-color); 
+}
+
+.result-epci, .result-intercommunality { 
+    background: linear-gradient(135deg, var(--intercommunality-color) 0%, rgba(249, 177, 64, 0.05) 100%);
+    border-left: 4px solid var(--secondary-color); 
+}
+
+.result-commune { 
+    background: linear-gradient(135deg, var(--commune-color) 0%, rgba(33, 159, 172, 0.05) 100%);
+    border-left: 4px solid var(--secondary-color); 
+}
+
+/* Select Button */
+.select-button {
+    background: var(--gradient-accent);
+    color: var(--light-bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-accent);
+}
+
+.select-button:hover { 
+    background: var(--gradient-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(33, 159, 172, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-results.expanded {
+        max-height: 300px;
+        padding: var(--space-md) var(--space-lg);
+    }
+    
+    .result-item {
+        padding: var(--space-md);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+    }
+    
+    .result-info {
+        width: 100%;
+    }
+    
+    .result-code {
+        margin-left: 0;
+        margin-top: var(--space-xs);
+    }
+    
+    .select-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .result-section h3 {
+        font-size: var(--font-size-md);
+    }
+    
+    .result-section h4 {
+        font-size: var(--font-size-sm);
+    }
+}
