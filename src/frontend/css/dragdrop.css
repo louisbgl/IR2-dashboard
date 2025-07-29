@@ -2,13 +2,10 @@
 
 /* Dashboard Grid Row and Cell Styles */
 .dashboard-row {
-    position: relative;
-    margin-bottom: 40px;
-    width: 100%;
+    /* Styling is handled by JS inline styles for flexbox */
 }
 
 .dashboard-cell {
-    position: absolute;
     cursor: grab;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: center;
@@ -30,7 +27,7 @@
     position: fixed;
     pointer-events: none;
     z-index: 1000;
-    transform: rotate(5deg) scale(1.05);
+    transform: scale(1.05);
     box-shadow: 0 15px 35px rgba(33, 159, 172, 0.3);
     border: 3px solid #219fac;
     border-radius: 12px;
@@ -39,8 +36,8 @@
 }
 
 @keyframes dragFloat {
-    0%, 100% { transform: rotate(5deg) scale(1.05); }
-    50% { transform: rotate(4deg) scale(1.06); }
+    0%, 100% { transform: scale(1.05); }
+    50% { transform: scale(1.06); }
 }
 
 /* Row Drop Target Highlight */
@@ -56,8 +53,10 @@
 .dashboard-row.insert-new-row {
     background: linear-gradient(135deg, rgba(249, 177, 64, 0.12) 0%, rgba(33, 159, 172, 0.08) 100%);
     border: 2px dashed rgba(249, 177, 64, 0.4);
+    border-radius: 12px;
     box-shadow: 0 0 20px rgba(249, 177, 64, 0.25);
-    min-height: 60px;
+    min-height: 40px;
+    margin: 20px 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -164,4 +163,10 @@
     0% { transform: translateY(0) scale(1); }
     50% { transform: translateY(-2px) scale(1.01); }
     100% { transform: translateY(-4px) scale(1.02); }
+}
+
+/* Smooth Card Movement */
+.dashboard-cell.moving-card {
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    z-index: 100;
 }
