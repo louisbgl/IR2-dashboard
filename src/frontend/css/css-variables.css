@@ -1,0 +1,136 @@
+/* css-variables.css: Design tokens and CSS custom properties */
+
+:root {
+    /* Color Palette */
+    --primary-color: #219fac;
+    --secondary-color: #f9b140;
+    --accent-color: #f9b140;
+    --text-color: #333;
+    --text-secondary: #6c757d;
+    --text-muted: #495057;
+    --light-bg: #ffffff;
+    --body-bg: #f9f9f9;
+    --border-color: #e0e0e0;
+    --border-light: #e1e8ed;
+    --border-subtle: #f0f3f5;
+    --error-color: #e74c3c;
+    --success-color: #27ae60;
+    
+    /* Entity Type Colors */
+    --region-color: rgba(33, 159, 172, 0.1);
+    --department-color: rgba(33, 159, 172, 0.15);
+    --intercommunality-color: rgba(249, 177, 64, 0.1);
+    --commune-color: rgba(249, 177, 64, 0.15);
+    
+    /* Layout Dimensions */
+    --card-width: 680px;
+    --card-height: 320px;
+    --card-gap: 20px;
+    --search-width: 680px;
+    --max-content-width: 1440px;
+    --header-height: 60px;
+    
+    /* Spacing Scale */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 20px;
+    --space-2xl: 24px;
+    --space-3xl: 32px;
+    --space-4xl: 40px;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 50%;
+    
+    /* Typography */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    --font-size-xs: 12px;
+    --font-size-sm: 13px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.2;
+    --line-height-base: 1.4;
+    --line-height-relaxed: 1.6;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 8px 25px rgba(33, 159, 172, 0.15);
+    --shadow-primary: 0 2px 8px rgba(33, 159, 172, 0.25);
+    --shadow-accent: 0 2px 6px rgba(249, 177, 64, 0.2);
+    --shadow-drag: 0 15px 35px rgba(33, 159, 172, 0.3);
+    
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+    --transition-smooth: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-bounce: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Z-Index Scale */
+    --z-base: 1;
+    --z-elevated: 10;
+    --z-fixed: 100;
+    --z-modal: 1000;
+    --z-tooltip: 1100;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #219fac 0%, #1a7f89 100%);
+    --gradient-accent: linear-gradient(135deg, #f9b140 0%, #e09a2b 100%);
+    --gradient-subtle: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    --gradient-card-header: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    --gradient-error: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    
+    /* Animation Duration */
+    --duration-fast: 200ms;
+    --duration-base: 300ms;
+    --duration-slow: 400ms;
+    --duration-slower: 500ms;
+    
+    /* Breakpoints (for media queries) */
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    
+    /* Table Specific */
+    --table-max-height: 320px;
+    --table-cell-padding: var(--space-md) var(--space-sm);
+    --table-header-bg: var(--gradient-primary);
+}
+
+/* Responsive Design Tokens */
+@media (max-width: 768px) {
+    :root {
+        --card-width: calc(100vw - 40px);
+        --search-width: calc(100vw - 40px);
+        --card-gap: 16px;
+        --space-xl: 16px;
+        --space-2xl: 20px;
+        --space-3xl: 24px;
+        --space-4xl: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --card-width: calc(100vw - 24px);
+        --search-width: calc(100vw - 24px);
+        --card-gap: 12px;
+        --font-size-base: 13px;
+        --font-size-md: 14px;
+        --font-size-lg: 15px;
+        --font-size-xl: 16px;
+    }
+}
