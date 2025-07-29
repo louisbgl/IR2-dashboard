@@ -1,31 +1,21 @@
-/* base.css: CSS variables, resets, and typography */
-:root {
-    --primary-color: #219fac;
-    --secondary-color: #f9b140;
-    --accent-color: #f9b140;
-    --text-color: #333;
-    --light-bg: #ffffff;
-    --border-color: #e0e0e0;
-    --region-color: rgba(33, 159, 172, 0.1);
-    --department-color: rgba(33, 159, 172, 0.15);
-    --intercommunality-color: rgba(249, 177, 64, 0.1);
-    --commune-color: rgba(249, 177, 64, 0.15);
-}
+/* base.css: Global resets and typography using design tokens */
 
 html, body {
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
+    font-family: var(--font-family);
+    line-height: var(--line-height-relaxed);
     color: var(--text-color);
-    background-color: #f9f9f9;
+    background-color: var(--body-bg);
+    overflow-x: hidden;
 }
 
 h1, h2, h3, h4 {
     margin-top: 0;
     color: var(--primary-color);
+    line-height: var(--line-height-tight);
 }
 
 header h1 {
-    color: white;
+    color: var(--light-bg);
 }
