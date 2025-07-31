@@ -220,6 +220,47 @@ def employment():
             'message': str(e)
         }), 500
 
+@app.route('/dashboard/higher_education', methods=['GET'])
+def higher_education():
+    """
+    Endpoint to query higher education establishments in a specific entity
+    
+    Query parameters:
+    - entity_code: The code of the entity (commune, EPCI, departement, region)
+    - entity_type: Type of entity ("commune", "epci", "departement", "region")
+    
+    Returns:
+    - JSON with higher education data including:
+      - total_etablissements: Total number of establishments
+      - status_counts: Counts of establishments by status
+      - type_counts: Counts of establishments by type
+      - coordinates: List of coordinates for each establishment
+    """
+    entity_code = request.args.get('entity_code')
+    entity_type = request.args.get('entity_type', 'commune')
+
+    print(f"Received request for higher education data for entity_code: {entity_code}, entity_type: {entity_type}")
+
+    if not entity_code:
+        return jsonify({
+            'status': 'error',
+            'message': 'Missing entity_code parameter'
+        }), 400
+    
+    try:
+        from .queryONISEP import QueryONISEP
+        query_onisep = QueryONISEP(france_geo)
+        result = query_onisep.query_enseignement_superieur(entity_code, entity_type)
+        return jsonify({
+            'status': 'success',
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 @app.route('/dashboard/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint"""
