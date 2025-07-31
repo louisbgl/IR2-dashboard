@@ -155,7 +155,7 @@ export class SearchHandler {
             <div class="selected-entity-info">
                 <div class="selected-entity-item selected-entity-source">
                     <div class="selected-entity-label">Source des données</div>
-                    <div class="selected-entity-value">API MELODI, INSEE</div>
+                    <div class="selected-entity-value">API MELODI (INSEE), ONISEP</div>
                 </div>
             </div>
         `;
