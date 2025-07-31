@@ -4,6 +4,7 @@ from flask_cors import CORS
 
 from .franceGeo import FranceGeo
 from .queryINSEE import QueryINSEE
+from .queryONISEP import QueryONISEP
 
 app = Flask(__name__)
 CORS(app, origins=[
@@ -23,6 +24,9 @@ france_geo = FranceGeo(csv_path)
 
 # Create an instance of QueryINSEE
 query_insee = QueryINSEE(france_geo)
+
+# Create an instance of QueryONISEP
+query_onisep = QueryONISEP(france_geo)
 
 @app.route('/')
 def home():
@@ -248,8 +252,6 @@ def higher_education():
         }), 400
     
     try:
-        from .queryONISEP import QueryONISEP
-        query_onisep = QueryONISEP(france_geo)
         result = query_onisep.query_enseignement_superieur(entity_code, entity_type)
         return jsonify({
             'status': 'success',
