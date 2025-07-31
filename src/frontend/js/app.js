@@ -35,10 +35,12 @@ class DashboardApp {
         { id: 'card1', row: 0, col: 0 },
         { id: 'card2', row: 0, col: 1 },
         { id: 'card3', row: 1, col: 0 },
-        { id: 'card4', row: 1, col: 1 }
+        { id: 'card4', row: 1, col: 1 },
+        { id: 'card5', row: 2, col: 0 },
+        { id: 'card6', row: 2, col: 1 }
     ];
     #persistKey = 'dashboardGridLayout';
-    #cardModes = { card1: 'table', card2: 'table', card3: 'table', card4: 'table' };
+    #cardModes = { card1: 'table', card2: 'table', card3: 'table', card4: 'table', card5: 'table', card6: 'table' };
 
     async initialize() {
         this.#apiBaseUrl = await getApiBaseUrl();
@@ -100,7 +102,9 @@ class DashboardApp {
                 card1: { entityName, entityType, data: data.population },
                 card2: { entityName, entityType, data: data.pcs },
                 card3: { entityName, entityType, data: data.diploma },
-                card4: { entityName, entityType, data: data.employment }
+                card4: { entityName, entityType, data: data.employment },
+                card5: { entityName, entityType, data: data.higher_education },
+                card6: { entityName, entityType, data: data.higher_education }
             };
             
             this.#renderGrid();
@@ -124,7 +128,7 @@ class DashboardApp {
         
         cardGrid.innerHTML = '';
         
-        if (!this.#cardData.card1 && !this.#cardData.card2 && !this.#cardData.card3 && !this.#cardData.card4) {
+        if (!this.#cardData.card1 && !this.#cardData.card2 && !this.#cardData.card3 && !this.#cardData.card4 && !this.#cardData.card5 && !this.#cardData.card6) {
             return;
         }
         
@@ -132,11 +136,13 @@ class DashboardApp {
             card1: { title: "Populations par tranches d'âge", description: '', renderer: 'population' },
             card2: { title: 'Populations par catégorie socio-professionnelle', description: '', renderer: 'pcs' },
             card3: { title: "Populations par niveau d'éducation", description: 'Données disponibles uniquement pour l\'année 2022.', renderer: 'diploma' },
-            card4: { title: "Données d'emploi", description: '', renderer: 'employment' }
+            card4: { title: "Données d'emploi", description: '', renderer: 'employment' },
+            card5: { title: "Établissements par statut", description: '', renderer: 'onisep-status' },
+            card6: { title: "Types d'établissements", description: '', renderer: 'onisep-type' }
         };
         
         const cards = {};
-        for (const cardId of ['card1', 'card2', 'card3', 'card4']) {
+        for (const cardId of ['card1', 'card2', 'card3', 'card4', 'card5', 'card6']) {
             const cardInfo = this.#cardData[cardId];
             const config = cardConfigs[cardId];
             const mode = this.#cardModes[cardId] || 'table';
@@ -178,6 +184,10 @@ class DashboardApp {
                 return this.#dataRenderer.renderDiplomaTable(cardInfo.data);
             case 'employment':
                 return this.#dataRenderer.renderEmploymentTable(cardInfo.data);
+            case 'onisep-status':
+                return this.#dataRenderer.renderONISEPStatusTable(cardInfo.data);
+            case 'onisep-type':
+                return this.#dataRenderer.renderONISEPTypeTable(cardInfo.data);
             default:
                 return `<div class="no-data-message"><p>Type de données non reconnu.</p></div>`;
         }
