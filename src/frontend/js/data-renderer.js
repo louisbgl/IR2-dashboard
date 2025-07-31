@@ -15,28 +15,32 @@ export class DataRenderer {
             throw new Error('Données d\'entité manquantes');
         }
 
-        const [populationResponse, pcsResponse, diplomaResponse, employmentResponse] = await Promise.all([
+        const [populationResponse, pcsResponse, diplomaResponse, employmentResponse, higherEducationResponse] = await Promise.all([
             fetch(`${this.#apiBaseUrl}/dashboard/population?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/pcs?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/diploma?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
-            fetch(`${this.#apiBaseUrl}/dashboard/employment?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
+            fetch(`${this.#apiBaseUrl}/dashboard/employment?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
+            fetch(`${this.#apiBaseUrl}/dashboard/higher_education?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
         ]);
 
         const populationData = await populationResponse.json();
         const pcsData = await pcsResponse.json();
         const diplomaData = await diplomaResponse.json();
         const employmentData = await employmentResponse.json();
+        const higherEducationData = await higherEducationResponse.json();
 
         if (populationData.status === 'error') throw new Error(populationData.message || 'Erreur récupération population');
         if (pcsData.status === 'error') throw new Error(pcsData.message || 'Erreur récupération PCS');
         if (diplomaData.status === 'error') throw new Error(diplomaData.message || 'Erreur récupération diplôme');
         if (employmentData.status === 'error') throw new Error(employmentData.message || 'Erreur récupération emploi');
+        if (higherEducationData.status === 'error') throw new Error(higherEducationData.message || 'Erreur récupération enseignement supérieur');
 
         return {
             population: populationData.data,
             pcs: pcsData.data,
             diploma: diplomaData.data,
-            employment: employmentData.data
+            employment: employmentData.data,
+            higher_education: higherEducationData.data
         };
     }
 
@@ -203,6 +207,78 @@ export class DataRenderer {
                                     const value = data[year][field];
                                     return `<td>${value !== undefined ? value : '—'}</td>`;
                                 }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderONISEPStatusTable(data) {
+        if (!data || !data.total_etablissements) {
+            return `<div class="no-data-message"><p>Aucune donnée ONISEP disponible.</p></div>`;
+        }
+        
+        const total = data.total_etablissements;
+        const statusCounts = data.status_counts || {};
+        
+        // Calculate percentages
+        const statusWithPercentages = Object.entries(statusCounts).map(([status, count]) => ({
+            status,
+            count,
+            percentage: total > 0 ? ((count / total) * 100).toFixed(1) : 0
+        })).sort((a, b) => b.count - a.count);
+        
+        return `
+            <div style="text-align: center; margin-bottom: 16px; padding: 12px; background: rgba(33, 159, 172, 0.05); border-radius: 8px;">
+                <strong style="color: #219fac; font-size: 16px;">Total: ${total} établissements</strong>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Statut</th>
+                            <th>Nombre</th>
+                            <th>Pourcentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${statusWithPercentages.map(item => `
+                            <tr>
+                                <td>${item.status}</td>
+                                <td>${item.count}</td>
+                                <td>${item.percentage}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderONISEPTypeTable(data) {
+        if (!data || !data.type_counts) {
+            return `<div class="no-data-message"><p>Aucune donnée ONISEP disponible.</p></div>`;
+        }
+        
+        const typeCounts = data.type_counts;
+        const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+        
+        return `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type d'établissement</th>
+                            <th>Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedTypes.map(([type, count]) => `
+                            <tr>
+                                <td>${type}</td>
+                                <td>${count}</td>
                             </tr>
                         `).join('')}
                     </tbody>
