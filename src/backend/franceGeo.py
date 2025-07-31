@@ -551,3 +551,30 @@ class FranceGeo:
                 })
         
         return results
+
+    def get_region_name_from_code(self, code_region):
+        return self.REGIONS.get(code_region, "ERROR: Unknown region code")
+    
+    def get_region_name_from_epci_code(self, code_epci):
+        for commune in self.communes.values():
+            if commune["code_epci"] == code_epci:
+                return commune["nom_region"]
+        return "ERROR: Unknown EPCI code"
+    
+    def get_departement_name_from_code(self, code_departement):
+        return self.DEPARTEMENTS.get(code_departement, "ERROR: Unknown department code")
+    
+    def get_departement_name_from_commune_code(self, code_commune):
+        commune_info = self.communes.get(code_commune)
+        if commune_info:
+            return commune_info["nom_departement"]
+        return "ERROR: Unknown commune code"
+    
+    def get_departement_code_from_commune_code(self, code_commune):
+        commune_info = self.communes.get(code_commune)
+        if commune_info:
+            return commune_info["code_departement"]
+        return "ERROR: Unknown commune code"
+    
+    def get_commune_codes_in_epci(self, code_epci):
+        return list(self.epcis.get(code_epci, []))
