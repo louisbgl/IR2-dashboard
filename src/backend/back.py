@@ -252,7 +252,7 @@ def higher_education():
         }), 400
     
     try:
-        result = query_onisep.query_enseignement_superieur(entity_code, entity_type)
+        result = query_onisep.query_enseignement(entity_code, entity_type)
         return jsonify({
             'status': 'success',
             'data': result
