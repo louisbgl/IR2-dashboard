@@ -37,6 +37,33 @@ class QueryONISEP:
             return None
 
     @staticmethod
+    def remove_duplicates(results, debug=False):
+        """
+        Remove duplicate establishments from combined results using UAI codes.
+        UAI (Unité Administrative Immatriculée) codes are unique establishment identifiers.
+        """
+        seen_uai = set()
+        unique_results = []
+        duplicates_removed = 0
+        
+        for result in results:
+            uai = result.get("code_uai", "").strip()
+            
+            if uai and uai in seen_uai:
+                duplicates_removed += 1
+                if debug:
+                    print(f"[QueryONISEP] DUPLICATE: {result.get('nom', 'N/A')} (UAI: {uai})")
+            else:
+                if uai:
+                    seen_uai.add(uai)
+                unique_results.append(result)
+        
+        if debug:
+            print(f"[QueryONISEP] Deduplication: {len(results)} -> {len(unique_results)} ({duplicates_removed} duplicates removed)")
+        
+        return unique_results
+
+    @staticmethod
     def sort_enseignement_data(self, results, entity_code, entity_type):
         """
         Sort enseignement data and filter by entity type.
@@ -173,6 +200,11 @@ class QueryONISEP:
         if not all_results:
             raise Exception(f"Failed to query enseignement data for {entity_type} {entity_code}")
         
-        result = self.sort_enseignement_data(self, all_results, entity_code, entity_type)
+        # Remove duplicates before processing
+        if debug:
+            print(f"[QueryONISEP] Before deduplication: {len(all_results)} establishments")
+        deduplicated_results = self.remove_duplicates(all_results, debug)
+        
+        result = self.sort_enseignement_data(self, deduplicated_results, entity_code, entity_type)
         return result
     
