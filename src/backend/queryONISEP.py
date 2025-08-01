@@ -9,6 +9,7 @@ class QueryONISEP:
     """
     # API endpoints
     BASE_URL = "https://api.opendata.onisep.fr/api/1.0/dataset"
+    ENSEIGN_SEC_URL = f"{BASE_URL}/5fa5816ac6a6e/search"
     ENSEIGN_SUP_URL = f"{BASE_URL}/5fa586da5c4b6/search"
 
     def __init__(self, france_geo):
@@ -36,12 +37,12 @@ class QueryONISEP:
             return None
 
     @staticmethod
-    def sort_enseignement_superieur_data(self, response, entity_code, entity_type):
+    def sort_enseignement_data(self, results, entity_code, entity_type):
         """
-        Sort enseignement superieur data and filter by entity type.
+        Sort enseignement data and filter by entity type.
         Returns: total count, status counts, type counts, and coordinates.
         """
-        results = response.get("results", [])
+        # results is already a list of establishments from combined APIs
         
         # Filter results based on entity type
         if entity_type == "commune":
@@ -79,7 +80,8 @@ class QueryONISEP:
                     "latitude": result["latitude_y"],
                     "nom": result.get("nom", ""),
                     "type": result.get("type_detablissement", ""),
-                    "statut": result.get("statut", "")
+                    "statut": result.get("statut", ""),
+                    "_source": result.get("_source", "unknown")
                 })
         
         return {
@@ -89,47 +91,88 @@ class QueryONISEP:
             "coordinates": coordinates
         }
 
-    def query_enseignement_superieur(self, entity_code, entity_type="commune", debug=False):
+    def _build_geographic_filter(self, entity_code, entity_type, api_type):
         """
-        Query a specific entity in the ONISEP dataset
+        Build geographic filter for API requests based on entity type and API format.
+        api_type: 'sec' or 'sup' to handle different departement formats
         """
-        static_filters = ["size=2000"]
+        if entity_type == "commune":
+            dep_name = self.france_geo.get_departement_name_from_commune_code(entity_code)
+            dep_code = self.france_geo.get_departement_code_from_commune_code(entity_code)
+            if api_type == "sup":
+                filter_value = f"{dep_code} - {dep_name}"
+            else:  # sec
+                filter_value = dep_name
+            return f"facet.departement={quote(filter_value)}"
+        elif entity_type == "epci":
+            region_name = self.france_geo.get_region_name_from_epci_code(entity_code)
+            return f"facet.region={quote(region_name)}"
+        elif entity_type == "departement":
+            dep_name = self.france_geo.get_departement_name_from_code(entity_code)
+            if api_type == "sup":
+                filter_value = f"{entity_code} - {dep_name}"
+            else:  # sec
+                filter_value = dep_name
+            return f"facet.departement={quote(filter_value)}"
+        elif entity_type == "region":
+            region_name = self.france_geo.get_region_name_from_code(entity_code)
+            return f"facet.region={quote(region_name)}"
+        else:
+            raise ValueError("Invalid entity_type. Must be one of: commune, epci, departement, region.")
+
+    def query_enseignement(self, entity_code, entity_type="commune", level="all", debug=False):
+        """
+        Query a specific entity in the ONISEP dataset.
+        level: 'all' (both sec and sup), 'sec' (secondary only), 'sup' (superior only)
+        """
+        static_filters = ["size=5000"]
 
         if entity_type not in ["commune", "epci", "departement", "region"]:
             raise ValueError("Invalid entity_type. Must be one of: commune, epci, departement, region.")
         
-        geo_code = ""
-        if entity_type == "commune":
-            dep_name = self.france_geo.get_departement_name_from_commune_code(entity_code)
-            dep_code = self.france_geo.get_departement_code_from_commune_code(entity_code)
-            filter = f"{dep_code} - {dep_name}"
-            geo_code = f"facet.departement={quote(filter)}"
-        elif entity_type == "epci":
-            region_name = self.france_geo.get_region_name_from_epci_code(entity_code)
-            geo_code = f"facet.region={quote(region_name)}"
-        elif entity_type == "departement":
-            dep_name = self.france_geo.get_departement_name_from_code(entity_code)
-            filter = f"{entity_code} - {dep_name}"
-            geo_code = f"facet.departement={quote(filter)}"
-        elif entity_type == "region":
-            region_name = self.france_geo.get_region_name_from_code(entity_code)
-            geo_code = f"facet.region={quote(region_name)}"
-        else:
-            raise ValueError("Invalid entity_type. Must be one of: commune, epci, departement, region.")
+        if level not in ["all", "sec", "sup"]:
+            raise ValueError("Invalid level. Must be one of: all, sec, sup.")
 
-        url = self.ENSEIGN_SUP_URL
-        url += f"?{geo_code}&{'&'.join(static_filters)}"
-
-        if debug: print(f"[QueryONISEP] DEBUG: Request URL: {url}")
-
-        response = self.make_api_request(url)
-
-        if not response:
-            raise Exception(f"Failed to query population data for {entity_type} {entity_code}. Response: {response}")
+        # Collect results from all requested APIs
+        all_results = []
         
-        if debug: print(f"Response:\n{response}")
+        # Query secondary education if requested
+        if level in ["all", "sec"]:
+            geo_filter = self._build_geographic_filter(entity_code, entity_type, "sec")
+            sec_url = f"{self.ENSEIGN_SEC_URL}?{geo_filter}&{'&'.join(static_filters)}"
+            if debug: print(f"[QueryONISEP] DEBUG: SEC URL: {sec_url}")
+            
+            sec_response = self.make_api_request(sec_url)
+            if sec_response:
+                sec_results = sec_response.get("results", [])
+                # Add source attribution
+                for result in sec_results:
+                    result["_source"] = "sec"
+                all_results.extend(sec_results)
+                if debug: print(f"[QueryONISEP] DEBUG: Got {len(sec_results)} results from SEC")
+            elif debug:
+                print(f"[QueryONISEP] WARNING: Failed to query SEC data")
+        
+        # Query superior education if requested
+        if level in ["all", "sup"]:
+            geo_filter = self._build_geographic_filter(entity_code, entity_type, "sup")
+            sup_url = f"{self.ENSEIGN_SUP_URL}?{geo_filter}&{'&'.join(static_filters)}"
+            if debug: print(f"[QueryONISEP] DEBUG: SUP URL: {sup_url}")
+            
+            sup_response = self.make_api_request(sup_url)
+            if sup_response:
+                sup_results = sup_response.get("results", [])
+                # Add source attribution
+                for result in sup_results:
+                    result["_source"] = "sup"
+                all_results.extend(sup_results)
+                if debug: print(f"[QueryONISEP] DEBUG: Got {len(sup_results)} results from SUP")
+            elif debug:
+                print(f"[QueryONISEP] WARNING: Failed to query SUP data")
 
-        result = self.sort_enseignement_superieur_data(self, response, entity_code, entity_type)
-
+        if not all_results:
+            raise Exception(f"Failed to query enseignement data for {entity_type} {entity_code}")
+        
+        result = self.sort_enseignement_data(self, all_results, entity_code, entity_type)
         return result
     
