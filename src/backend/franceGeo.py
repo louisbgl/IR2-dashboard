@@ -578,3 +578,9 @@ class FranceGeo:
     
     def get_commune_codes_in_epci(self, code_epci):
         return list(self.epcis.get(code_epci, []))
+    
+    def get_commune_name_from_code(self, code_commune):
+        commune_info = self.communes.get(code_commune)
+        if commune_info:
+            return commune_info["nom"]
+        return "ERROR: Unknown commune code"

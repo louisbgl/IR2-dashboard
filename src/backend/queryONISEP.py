@@ -11,6 +11,7 @@ class QueryONISEP:
     BASE_URL = "https://api.opendata.onisep.fr/api/1.0/dataset"
     ENSEIGN_SEC_URL = f"{BASE_URL}/5fa5816ac6a6e/search"
     ENSEIGN_SUP_URL = f"{BASE_URL}/5fa586da5c4b6/search"
+    FORMATIONS_URL = f"{BASE_URL}/605344579a7d7/search"
 
     def __init__(self, france_geo):
         """
@@ -208,3 +209,124 @@ class QueryONISEP:
         result = self.sort_enseignement_data(self, deduplicated_results, entity_code, entity_type)
         return result
     
+    def sort_formations_data(self, results, entity_code, entity_type):
+        """
+        Sort formations data and filter by entity type.
+        Returns: total count, level counts, status counts, and coordinates.
+        """
+        # Filter results based on entity type
+        if entity_type == "commune":
+            # Filter by commune name (exact match)
+            commune_name = self.france_geo.get_commune_name_from_code(entity_code)
+            filtered_results = [r for r in results if r.get("ens_commune") == commune_name]
+        elif entity_type == "epci":
+            # Get commune names in this EPCI
+            commune_codes = self.france_geo.get_commune_codes_in_epci(entity_code)
+            commune_names = [self.france_geo.get_commune_name_from_code(code) for code in commune_codes]
+            filtered_results = [r for r in results if r.get("ens_commune") in commune_names]
+        elif entity_type == "departement":
+            # Filter by departement name
+            dep_name = self.france_geo.get_departement_name_from_code(entity_code)
+            filtered_results = [r for r in results if r.get("ens_departement") == dep_name]
+        elif entity_type == "region":
+            # Filter by region name
+            region_name = self.france_geo.get_region_name_from_code(entity_code)
+            filtered_results = [r for r in results if r.get("ens_region") == region_name]
+        else:
+            filtered_results = results
+        
+        # Calculate totals and counts
+        total_formations = len(filtered_results)
+        
+        # Count by education level (for_niveau_de_sortie)
+        level_counts = {}
+        for result in filtered_results:
+            niveau = result.get("for_niveau_de_sortie", "unknown")
+            level_counts[niveau] = level_counts.get(niveau, 0) + 1
+        
+        # Count by establishment status (ens_statut)
+        status_counts = {}
+        for result in filtered_results:
+            statut = result.get("ens_statut", "unknown")
+            status_counts[statut] = status_counts.get(statut, 0) + 1
+        
+        # Count by formation type (for_type)
+        type_counts = {}
+        for result in filtered_results:
+            formation_type = result.get("for_type", "unknown")
+            type_counts[formation_type] = type_counts.get(formation_type, 0) + 1
+        
+        # Extract coordinates for mapping
+        coordinates = []
+        for result in filtered_results:
+            geoloc = result.get("_geoloc")
+            if geoloc and geoloc.get("lat") and geoloc.get("lon"):
+                coordinates.append({
+                    "longitude": geoloc["lon"],
+                    "latitude": geoloc["lat"],
+                    "formation": result.get("formation_for_libelle", ""),
+                    "etablissement": result.get("lieu_denseignement_ens_libelle", ""),
+                    "niveau": result.get("for_niveau_de_sortie", ""),
+                    "statut": result.get("ens_statut", ""),
+                    "type": result.get("for_type", ""),
+                    "_source": "formations"
+                })
+        
+        return {
+            "total_formations": total_formations,
+            "level_counts": level_counts,
+            "status_counts": status_counts,
+            "type_counts": type_counts,
+            "coordinates": coordinates
+        }
+
+    def _build_formations_geographic_filter(self, entity_code, entity_type):
+        """
+        Build geographic filter for formations API requests based on entity type.
+        """
+        if entity_type == "commune":
+            # No direct commune filter, use departement instead
+            dep_name = self.france_geo.get_departement_name_from_commune_code(entity_code)
+            return f"facet.ens_departement={quote(dep_name)}"
+        elif entity_type == "epci":
+            # Use region filter for EPCI
+            region_name = self.france_geo.get_region_name_from_epci_code(entity_code)
+            return f"facet.ens_region={quote(region_name)}"
+        elif entity_type == "departement":
+            dep_name = self.france_geo.get_departement_name_from_code(entity_code)
+            return f"facet.ens_departement={quote(dep_name)}"
+        elif entity_type == "region":
+            region_name = self.france_geo.get_region_name_from_code(entity_code)
+            return f"facet.ens_region={quote(region_name)}"
+        else:
+            raise ValueError("Invalid entity_type. Must be one of: commune, epci, departement, region.")
+
+    def query_formations(self, entity_code, entity_type="commune", debug=False):
+        """
+        Query formations data from the ONISEP dataset for a specific entity.
+        Returns aggregated data about formations including counts by level and status.
+        """
+        static_filters = ["size=5000"]
+
+        if entity_type not in ["commune", "epci", "departement", "region"]:
+            raise ValueError("Invalid entity_type. Must be one of: commune, epci, departement, region.")
+
+        # Build geographic filter
+        geo_filter = self._build_formations_geographic_filter(entity_code, entity_type)
+        formations_url = f"{self.FORMATIONS_URL}?{geo_filter}&{'&'.join(static_filters)}"
+        
+        if debug: 
+            print(f"[QueryONISEP] DEBUG: FORMATIONS URL: {formations_url}")
+        
+        # Query formations data
+        formations_response = self.make_api_request(formations_url)
+        if not formations_response:
+            raise Exception(f"Failed to query formations data for {entity_type} {entity_code}")
+        
+        formations_results = formations_response.get("results", [])
+        if debug: 
+            print(f"[QueryONISEP] DEBUG: Got {len(formations_results)} formations results")
+        
+        # Process and filter results
+        result = self.sort_formations_data(formations_results, entity_code, entity_type)
+        return result
