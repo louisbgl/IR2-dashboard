@@ -15,12 +15,13 @@ export class DataRenderer {
             throw new Error('Données d\'entité manquantes');
         }
 
-        const [populationResponse, pcsResponse, diplomaResponse, employmentResponse, higherEducationResponse] = await Promise.all([
+        const [populationResponse, pcsResponse, diplomaResponse, employmentResponse, higherEducationResponse, formationsResponse] = await Promise.all([
             fetch(`${this.#apiBaseUrl}/dashboard/population?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/pcs?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/diploma?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/employment?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
-            fetch(`${this.#apiBaseUrl}/dashboard/higher_education?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
+            fetch(`${this.#apiBaseUrl}/dashboard/higher_education?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
+            fetch(`${this.#apiBaseUrl}/dashboard/formations?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
         ]);
 
         const populationData = await populationResponse.json();
@@ -28,19 +29,22 @@ export class DataRenderer {
         const diplomaData = await diplomaResponse.json();
         const employmentData = await employmentResponse.json();
         const higherEducationData = await higherEducationResponse.json();
+        const formationsData = await formationsResponse.json();
 
         if (populationData.status === 'error') throw new Error(populationData.message || 'Erreur récupération population');
         if (pcsData.status === 'error') throw new Error(pcsData.message || 'Erreur récupération PCS');
         if (diplomaData.status === 'error') throw new Error(diplomaData.message || 'Erreur récupération diplôme');
         if (employmentData.status === 'error') throw new Error(employmentData.message || 'Erreur récupération emploi');
         if (higherEducationData.status === 'error') throw new Error(higherEducationData.message || 'Erreur récupération enseignement supérieur');
+        if (formationsData.status === 'error') throw new Error(formationsData.message || 'Erreur récupération formations');
 
         return {
             population: populationData.data,
             pcs: pcsData.data,
             diploma: diplomaData.data,
             employment: employmentData.data,
-            higher_education: higherEducationData.data
+            higher_education: higherEducationData.data,
+            formations: formationsData.data
         };
     }
 
@@ -279,6 +283,108 @@ export class DataRenderer {
                             <tr>
                                 <td>${type}</td>
                                 <td>${count}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderFormationsOverviewTable(data) {
+        if (!data || !data.total_formations) {
+            return `<div class="no-data-message"><p>Aucune donnée de formations disponible.</p></div>`;
+        }
+        
+        const total = data.total_formations;
+        const levelCounts = data.level_counts || {};
+        const statusCounts = data.status_counts || {};
+        
+        // Calculate percentages for levels
+        const levelsWithPercentages = Object.entries(levelCounts).map(([level, count]) => ({
+            level,
+            count,
+            percentage: total > 0 ? ((count / total) * 100).toFixed(1) : 0
+        })).sort((a, b) => b.count - a.count);
+        
+        // Calculate percentages for status
+        const statusWithPercentages = Object.entries(statusCounts).map(([status, count]) => ({
+            status,
+            count,
+            percentage: total > 0 ? ((count / total) * 100).toFixed(1) : 0
+        })).sort((a, b) => b.count - a.count);
+        
+        return `
+            <div style="text-align: center; margin-bottom: 16px; padding: 12px; background: rgba(33, 159, 172, 0.05); border-radius: 8px;">
+                <strong style="color: #219fac; font-size: 16px;">Total: ${total} formations</strong>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="background-color: #f9b140; color: white; font-weight: bold;">Niveau</th>
+                            <th style="background-color: #219fac; color: white;">Nombre</th>
+                            <th style="background-color: #219fac; color: white;">%</th>
+                            <th style="background-color: #f9b140; color: white; font-weight: bold;">Statut</th>
+                            <th style="background-color: #219fac; color: white;">Nombre</th>
+                            <th style="background-color: #219fac; color: white;">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Math.max(levelsWithPercentages.length, statusWithPercentages.length) > 0 ? 
+                            Array.from({length: Math.max(levelsWithPercentages.length, statusWithPercentages.length)}).map((_, index) => {
+                                const levelItem = levelsWithPercentages[index] || { level: '', count: '', percentage: '' };
+                                const statusItem = statusWithPercentages[index] || { status: '', count: '', percentage: '' };
+                                return `
+                                    <tr>
+                                        <td style="background-color: #f8f9fa; font-weight: bold;">${levelItem.level}</td>
+                                        <td>${levelItem.count}</td>
+                                        <td>${levelItem.percentage}${levelItem.percentage ? '%' : ''}</td>
+                                        <td style="background-color: #f8f9fa; font-weight: bold;">${statusItem.status}</td>
+                                        <td>${statusItem.count}</td>
+                                        <td>${statusItem.percentage}${statusItem.percentage ? '%' : ''}</td>
+                                    </tr>
+                                `;
+                            }).join('') : ''
+                        }
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderFormationsDetailsTable(data) {
+        if (!data || !data.type_counts) {
+            return `<div class="no-data-message"><p>Aucune donnée de formations disponible.</p></div>`;
+        }
+        
+        const typeCounts = data.type_counts;
+        const total = data.total_formations || 0;
+        
+        // Calculate percentages for formation types
+        const typesWithPercentages = Object.entries(typeCounts).map(([type, count]) => ({
+            type,
+            count,
+            percentage: total > 0 ? ((count / total) * 100).toFixed(1) : 0
+        })).sort((a, b) => b.count - a.count);
+        
+        return `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type de formation</th>
+                            <th>Nombre</th>
+                            <th>Pourcentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${typesWithPercentages.map(item => `
+                            <tr>
+                                <td>${item.type}</td>
+                                <td>${item.count}</td>
+                                <td>${item.percentage}%</td>
                             </tr>
                         `).join('')}
                     </tbody>

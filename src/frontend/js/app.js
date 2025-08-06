@@ -37,10 +37,15 @@ class DashboardApp {
         { id: 'card3', row: 1, col: 0 },
         { id: 'card4', row: 1, col: 1 },
         { id: 'card5', row: 2, col: 0 },
-        { id: 'card6', row: 2, col: 1 }
+        { id: 'card6', row: 2, col: 1 },
+        { id: 'card7', row: 3, col: 0 },
+        { id: 'card8', row: 3, col: 1 }
     ];
     #persistKey = 'dashboardGridLayout';
-    #cardModes = { card1: 'table', card2: 'table', card3: 'table', card4: 'table', card5: 'table', card6: 'table' };
+    #cardModes = { 
+        card1: 'table', card2: 'table', card3: 'table', card4: 'table', 
+        card5: 'table', card6: 'table', card7: 'table', card8: 'table' 
+    };
 
     async initialize() {
         this.#apiBaseUrl = await getApiBaseUrl();
@@ -104,7 +109,9 @@ class DashboardApp {
                 card3: { entityName, entityType, data: data.diploma },
                 card4: { entityName, entityType, data: data.employment },
                 card5: { entityName, entityType, data: data.higher_education },
-                card6: { entityName, entityType, data: data.higher_education }
+                card6: { entityName, entityType, data: data.higher_education },
+                card7: { entityName, entityType, data: data.formations },
+                card8: { entityName, entityType, data: data.formations }
             };
             
             this.#renderGrid();
@@ -128,7 +135,7 @@ class DashboardApp {
         
         cardGrid.innerHTML = '';
         
-        if (!this.#cardData.card1 && !this.#cardData.card2 && !this.#cardData.card3 && !this.#cardData.card4 && !this.#cardData.card5 && !this.#cardData.card6) {
+        if (!this.#cardData.card1 && !this.#cardData.card2 && !this.#cardData.card3 && !this.#cardData.card4 && !this.#cardData.card5 && !this.#cardData.card6 && !this.#cardData.card7 && !this.#cardData.card8) {
             return;
         }
         
@@ -138,11 +145,13 @@ class DashboardApp {
             card3: { title: "Populations par niveau d'éducation", description: 'Données disponibles uniquement pour l\'année 2022.', renderer: 'diploma' },
             card4: { title: "Données d'emploi", description: '', renderer: 'employment' },
             card5: { title: "Établissements par statut", description: '', renderer: 'onisep-status' },
-            card6: { title: "Types d'établissements", description: '', renderer: 'onisep-type' }
+            card6: { title: "Types d'établissements", description: '', renderer: 'onisep-type' },
+            card7: { title: "Vue d'ensemble des formations", description: '', renderer: 'formations-overview' },
+            card8: { title: "Types de formations", description: '', renderer: 'formations-details' }
         };
         
         const cards = {};
-        for (const cardId of ['card1', 'card2', 'card3', 'card4', 'card5', 'card6']) {
+        for (const cardId of ['card1', 'card2', 'card3', 'card4', 'card5', 'card6', 'card7', 'card8']) {
             const cardInfo = this.#cardData[cardId];
             const config = cardConfigs[cardId];
             const mode = this.#cardModes[cardId] || 'table';
@@ -188,6 +197,10 @@ class DashboardApp {
                 return this.#dataRenderer.renderONISEPStatusTable(cardInfo.data);
             case 'onisep-type':
                 return this.#dataRenderer.renderONISEPTypeTable(cardInfo.data);
+            case 'formations-overview':
+                return this.#dataRenderer.renderFormationsOverviewTable(cardInfo.data);
+            case 'formations-details':
+                return this.#dataRenderer.renderFormationsDetailsTable(cardInfo.data);
             default:
                 return `<div class="no-data-message"><p>Type de données non reconnu.</p></div>`;
         }
