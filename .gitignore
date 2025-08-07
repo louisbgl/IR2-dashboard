@@ -4,6 +4,7 @@
 .env
 useful/
 tests/
+test.py
 __pycache__/
 manual_query.sh
 CLAUDE.md
