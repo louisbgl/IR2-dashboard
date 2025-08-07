@@ -22,11 +22,11 @@
     --intercommunality-color: rgba(249, 177, 64, 0.1);
     --commune-color: rgba(249, 177, 64, 0.15);
     
-    /* Layout Dimensions */
-    --card-width: 680px;
-    --card-height: 320px;
-    --card-gap: 20px;
-    --search-width: 680px;
+    /* Layout Dimensions - Responsive Card Sizing */
+    --card-width: clamp(450px, 40vw, 850px);
+    --card-height: calc(var(--card-width) * 0.47); /* Maintains 680:320 ratio */
+    --card-gap: clamp(16px, 2vw, 32px);
+    --search-width: var(--card-width); /* Keep search width same as card width */
     --max-content-width: 1440px;
     --header-height: 60px;
     
@@ -110,27 +110,21 @@
     --table-header-bg: var(--gradient-primary);
 }
 
-/* Responsive Design Tokens */
-@media (max-width: 768px) {
+/* Desktop Responsive Design - Cards scale with viewport */
+/* Mobile users will see the mobile message instead */
+
+/* Large Desktop Optimization */
+@media (min-width: 1600px) {
     :root {
-        --card-width: calc(100vw - 40px);
-        --search-width: calc(100vw - 40px);
-        --card-gap: 16px;
-        --space-xl: 16px;
-        --space-2xl: 20px;
-        --space-3xl: 24px;
-        --space-4xl: 32px;
+        --card-width: clamp(600px, 35vw, 800px);
+        --card-gap: clamp(20px, 2.5vw, 40px);
     }
 }
 
-@media (max-width: 480px) {
+/* Extra Large Desktop */
+@media (min-width: 2000px) {
     :root {
-        --card-width: calc(100vw - 24px);
-        --search-width: calc(100vw - 24px);
-        --card-gap: 12px;
-        --font-size-base: 13px;
-        --font-size-md: 14px;
-        --font-size-lg: 15px;
-        --font-size-xl: 16px;
+        --card-width: clamp(650px, 32vw, 900px);
+        --card-gap: clamp(24px, 3vw, 48px);
     }
 }

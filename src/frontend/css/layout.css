@@ -5,6 +5,7 @@
     padding: var(--space-xl);
     display: flex;
     justify-content: center;
+    box-sizing: border-box;
 }
 
 header {

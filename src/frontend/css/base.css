@@ -1,5 +1,9 @@
 /* base.css: Global resets and typography using design tokens */
 
+* {
+    box-sizing: border-box;
+}
+
 html, body {
     margin: 0;
     padding: 0;
