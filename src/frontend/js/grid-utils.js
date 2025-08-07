@@ -5,14 +5,54 @@
 
 // Grid configuration constants
 export const GRID_CONFIG = {
-    CARD_WIDTH: 680,
-    CARD_HEIGHT: 320,
-    CARD_GAP: 20,
+    CARD_WIDTH: null, // Will be calculated from CSS variables
+    CARD_HEIGHT: null, // Will be calculated from CSS variables
+    CARD_GAP: null, // Will be calculated from CSS variables
     DRAG_THRESHOLD: 5,
     DEFAULT_MAX_CARDS_PER_ROW: 2,
     ANIMATION_DURATION: 400,
     RESIZE_DEBOUNCE: 100
 };
+
+/**
+ * Gets current card dimensions from CSS variables
+ * @returns {Object} Object with width, height, and gap properties
+ */
+export function getCardDimensions() {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const cardWidth = computedStyle.getPropertyValue('--card-width').trim();
+    const cardHeight = computedStyle.getPropertyValue('--card-height').trim();
+    const cardGap = computedStyle.getPropertyValue('--card-gap').trim();
+    
+    // Parse CSS values (handle px, vw, calc(), clamp(), etc.)
+    const tempDiv = document.createElement('div');
+    tempDiv.style.width = cardWidth;
+    tempDiv.style.height = cardHeight;
+    tempDiv.style.margin = cardGap;
+    document.body.appendChild(tempDiv);
+    
+    const rect = tempDiv.getBoundingClientRect();
+    const gapStyle = window.getComputedStyle(tempDiv);
+    const gap = parseFloat(gapStyle.marginLeft);
+    
+    document.body.removeChild(tempDiv);
+    
+    return {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        gap: Math.round(gap)
+    };
+}
+
+/**
+ * Updates GRID_CONFIG with current CSS variable values
+ */
+export function updateGridConfig() {
+    const dimensions = getCardDimensions();
+    GRID_CONFIG.CARD_WIDTH = dimensions.width;
+    GRID_CONFIG.CARD_HEIGHT = dimensions.height;
+    GRID_CONFIG.CARD_GAP = dimensions.gap;
+}
 
 // Transition easing functions
 export const EASING = {

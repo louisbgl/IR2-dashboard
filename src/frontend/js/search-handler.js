@@ -8,6 +8,7 @@ export class SearchHandler {
     #apiBaseUrl = null;
     #onEntitySelected = null;
     #onClearSelection = null;
+    #lastSearchResults = null;
 
     constructor(apiBaseUrl, elements, callbacks) {
         this.#apiBaseUrl = apiBaseUrl;
@@ -66,6 +67,8 @@ export class SearchHandler {
 
             if (data.status === 'error') throw new Error(data.message || 'Erreur pendant la recherche');
 
+            // Store the search results
+            this.#lastSearchResults = data.results;
             this.#displaySearchResults(data.results, query);
         } catch (error) {
             console.error('Search error:', error);
@@ -133,7 +136,7 @@ export class SearchHandler {
         }
     }
 
-    #showSelectedEntity(entityId, entityName, entityType) {
+    async #showSelectedEntity(entityId, entityName, entityType) {
         if (!this.#elements.selectedEntity) return;
         
         const typeDisplayNames = {
@@ -142,6 +145,20 @@ export class SearchHandler {
             'epci': 'Intercommunalité',
             'commune': 'Commune'
         };
+
+        // For EPCI, get commune count from stored data
+        let communeCountInfo = '';
+        if (entityType === 'epci') {
+            // Get commune count from the stored search result data
+            const storedCommuneCount = this.getStoredEpciCommuneCount(entityId);
+            if (storedCommuneCount !== null) {
+                communeCountInfo = `
+                    <div class="selected-entity-item">
+                        <div class="selected-entity-value">Composée de ${storedCommuneCount} commune${storedCommuneCount > 1 ? 's' : ''}</div>
+                    </div>
+                `;
+            }
+        }
         
         const html = `
             <div class="selected-entity-header">
@@ -153,6 +170,7 @@ export class SearchHandler {
                 <button class="clear-selection-btn">Effacer</button>
             </div>
             <div class="selected-entity-info">
+                ${communeCountInfo}
                 <div class="selected-entity-item selected-entity-source">
                     <div class="selected-entity-label">Source des données</div>
                     <div class="selected-entity-value">API MELODI (INSEE), ONISEP</div>
@@ -179,6 +197,15 @@ export class SearchHandler {
         if (this.#onClearSelection) {
             this.#onClearSelection();
         }
+    }
+
+    getStoredEpciCommuneCount(entityId) {
+        if (!this.#lastSearchResults || !this.#lastSearchResults.epcis) {
+            return null;
+        }
+        
+        const epci = this.#lastSearchResults.epcis.find(e => e.code === entityId);
+        return epci && epci.commune_count !== undefined ? epci.commune_count : null;
     }
 
     #showError(message) {

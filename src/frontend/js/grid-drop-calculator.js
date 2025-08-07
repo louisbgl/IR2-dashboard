@@ -3,6 +3,8 @@
  * Determines where cards should be placed during drag and drop operations
  */
 
+import { GRID_CONFIG, updateGridConfig } from './grid-utils.js';
+
 export class GridDropCalculator {
     /**
      * Initialize the drop calculator
@@ -54,6 +56,9 @@ export class GridDropCalculator {
      * @returns {Object|null} Drop position information or null
      */
     findDropPosition(clientX, clientY, layout, draggedCard, getRowsFromLayout) {
+        // Update grid config to get current dimensions
+        updateGridConfig();
+        
         const rows = this.container.querySelectorAll('.dashboard-row');
         
         // Check for row insertion between existing rows

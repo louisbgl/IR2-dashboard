@@ -3,7 +3,7 @@
  * Manages the visual presentation and smooth transitions of the grid
  */
 
-import { GRID_CONFIG, hasPositionChanged, EASING } from './grid-utils.js';
+import { GRID_CONFIG, hasPositionChanged, EASING, updateGridConfig } from './grid-utils.js';
 
 export class GridRenderer {
     /**
@@ -46,6 +46,9 @@ export class GridRenderer {
      * @param {boolean} isDragging - Whether currently dragging
      */
     render(rows, cards, dragDropHandler, onCardMove, isDragging = false) {
+        // Update grid config with current CSS variable values
+        updateGridConfig();
+        
         // Store current positions before re-rendering for smooth transitions
         const previousPositions = this.storeCurrentPositions();
         
@@ -87,9 +90,8 @@ export class GridRenderer {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: ${GRID_CONFIG.CARD_GAP}px;
             margin-bottom: 40px;
-            min-height: ${GRID_CONFIG.CARD_HEIGHT}px;
+            min-height: var(--card-height);
             width: 100%;
             transition: all 0.3s ${EASING.CARD_TRANSITION};
         `;
@@ -109,14 +111,15 @@ export class GridRenderer {
         const cellDiv = document.createElement('div');
         cellDiv.className = 'dashboard-cell';
         cellDiv.style.cssText = `
-            width: ${GRID_CONFIG.CARD_WIDTH}px;
-            height: ${GRID_CONFIG.CARD_HEIGHT}px;
+            width: var(--card-width);
+            height: var(--card-height);
             cursor: grab;
             transition: all ${GRID_CONFIG.ANIMATION_DURATION}ms ${EASING.SMOOTH};
             transform-origin: center;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
+            margin: 0 calc(var(--card-gap) / 2);
         `;
         
         cellDiv.setAttribute('data-card-id', cardId);

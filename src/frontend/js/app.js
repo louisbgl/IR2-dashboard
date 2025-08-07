@@ -3,6 +3,7 @@ import { DashboardGrid } from './grid.js';
 import { createCard } from './card.js';
 import { SearchHandler } from './search-handler.js';
 import { DataRenderer } from './data-renderer.js';
+import { isMobileDevice, addResponsiveListener } from './responsive-detector.js';
 
 /**
  * IR2 Dashboard Application
@@ -15,10 +16,53 @@ import { DataRenderer } from './data-renderer.js';
  */
 
 let dashboardApp;
+let responsiveCleanup;
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if mobile device
+    if (isMobileDevice()) {
+        showMobileMessage();
+        setupResponsiveListener();
+    } else {
+        initDashboard();
+    }
+});
+
+function showMobileMessage() {
+    document.getElementById('mobile-message').style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+}
+
+function hideMobileMessage() {
+    document.getElementById('mobile-message').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function initDashboard() {
     dashboardApp = new DashboardApp();
     dashboardApp.initialize();
-});
+}
+
+function setupResponsiveListener() {
+    // Clean up previous listener if exists
+    if (responsiveCleanup) {
+        responsiveCleanup();
+    }
+    
+    // Add listener for orientation/resize changes
+    responsiveCleanup = addResponsiveListener(({ isMobile }) => {
+        if (isMobile && !dashboardApp) {
+            // Still mobile, keep showing message
+            showMobileMessage();
+        } else if (!isMobile && !dashboardApp) {
+            // Switched to desktop, initialize dashboard
+            hideMobileMessage();
+            initDashboard();
+        }
+        // Note: We don't handle desktop->mobile switch as it's less common
+        // and would require more complex state management
+    });
+}
 
 /**
  * Main Dashboard Application Class
