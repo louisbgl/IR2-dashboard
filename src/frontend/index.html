@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/entity-display.css">
     <link rel="stylesheet" href="css/table.css">
     <link rel="stylesheet" href="css/dragdrop.css">
+    <link rel="stylesheet" href="css/mobile-message.css">
 </head>
 <body>
     <header>
@@ -45,6 +46,26 @@
                 <div id="selectedEntity" class="selected-entity" style="display: none;"></div>
             </div>
             <div id="dashboard-card-grid"></div>
+        </div>
+    </div>
+
+    <!-- Mobile Message (hidden by default) -->
+    <div id="mobile-message" class="mobile-message" style="display: none;">
+        <div class="mobile-message-container">
+            <div class="mobile-message-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+            </div>
+            <h2 class="mobile-message-title">Tableau de bord IR2</h2>
+            <p class="mobile-message-text">
+                Cette interface est optimisée pour les ordinateurs de bureau afin de vous offrir la meilleure expérience de visualisation des données.
+            </p>
+            <p class="mobile-message-suggestion">
+                📱 → 💻 Visitez-nous depuis un ordinateur pour accéder au tableau de bord complet
+            </p>
         </div>
     </div>
 
