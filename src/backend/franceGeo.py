@@ -495,9 +495,11 @@ class FranceGeo:
             normalized_epci = self.normalize_text(epci_name)
             if normalized_query in normalized_epci and epci_code not in epci_dict:
                 epci_dict[epci_code] = True
+                commune_count = len(self.get_commune_codes_in_epci(epci_code))
                 results['epcis'].append({
                     'code': epci_code,
-                    'nom': epci_name
+                    'nom': epci_name,
+                    'commune_count': commune_count
                 })
                 
         # Search for departments (using both our lookup table and stored names)
