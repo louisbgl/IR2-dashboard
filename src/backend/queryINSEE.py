@@ -26,15 +26,19 @@ class QueryINSEE:
         Make a GET request to the specified URL and return the JSON response.
         """
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=5)
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.Timeout:
+            return {"status": "timeout", "message": "L'API INSEE n'a pas répondu", "data": None}
         except requests.exceptions.HTTPError as err:
+            if hasattr(err, 'response') and err.response.status_code in [502, 503, 504]:
+                return {"status": "service_unavailable", "message": "L'API INSEE n'a pas répondu", "data": None}
             print(f"HTTP Error: {err}")
-            return None
+            return {"status": "error", "message": "L'API INSEE n'a pas répondu", "data": None}
         except requests.exceptions.RequestException as err:
             print(f"Request Error: {err}")
-            return None
+            return {"status": "error", "message": "L'API INSEE n'a pas répondu", "data": None}
     
     @staticmethod
     def sort_population_data(pop_data):
@@ -86,6 +90,10 @@ class QueryINSEE:
         if debug: print(f"Querying population for {entity_type} {entity_code} with URL:\n{url}")
 
         response = self.make_api_request(url)
+        
+        # Handle timeout and service unavailable
+        if isinstance(response, dict) and response.get('status') in ['timeout', 'service_unavailable', 'error']:
+            return response
 
         if not response:
             raise Exception(f"Failed to query population data for {entity_type} {entity_code}. Response: {response}")
@@ -153,6 +161,11 @@ class QueryINSEE:
         if debug: print(f"Querying PCS for {entity_type} {entity_code} with URL:\n{url}")
 
         response = self.make_api_request(url)
+        
+        # Handle timeout and service unavailable
+        if isinstance(response, dict) and response.get('status') in ['timeout', 'service_unavailable', 'error']:
+            return response
+            
         if not response:
             raise Exception(f"Failed to query PCS data for {entity_type} {entity_code}. Response: {response}")
 
@@ -211,6 +224,11 @@ class QueryINSEE:
         if debug: print(f"Querying diplomas for {entity_type} {entity_code} with URL:\n{url}")
 
         response = self.make_api_request(url)
+        
+        # Handle timeout and service unavailable
+        if isinstance(response, dict) and response.get('status') in ['timeout', 'service_unavailable', 'error']:
+            return response
+            
         if not response:
             raise Exception(f"Failed to query diplomas data for {entity_type} {entity_code}. Response: {response}")
 
@@ -293,6 +311,11 @@ class QueryINSEE:
         if debug: print(f"Querying employment for {entity_type} {entity_code} with URL:\n{url}")
 
         response = self.make_api_request(url)
+        
+        # Handle timeout and service unavailable
+        if isinstance(response, dict) and response.get('status') in ['timeout', 'service_unavailable', 'error']:
+            return response
+            
         if not response:
             raise Exception(f"Failed to query employment data for {entity_type} {entity_code}. Response: {response}")
 

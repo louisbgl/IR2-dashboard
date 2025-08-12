@@ -27,15 +27,19 @@ class QueryONISEP:
         Make a GET request to the specified URL and return the JSON response.
         """
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=5)
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.Timeout:
+            return {"status": "timeout", "message": "L'API ONISEP n'a pas répondu", "data": None}
         except requests.exceptions.HTTPError as err:
+            if hasattr(err, 'response') and err.response.status_code in [502, 503, 504]:
+                return {"status": "service_unavailable", "message": "L'API ONISEP n'a pas répondu", "data": None}
             print(f"HTTP Error: {err}")
-            return None
+            return {"status": "error", "message": "L'API ONISEP n'a pas répondu", "data": None}
         except requests.exceptions.RequestException as err:
             print(f"Request Error: {err}")
-            return None
+            return {"status": "error", "message": "L'API ONISEP n'a pas répondu", "data": None}
 
     @staticmethod
     def remove_duplicates(results, debug=False):
@@ -171,7 +175,11 @@ class QueryONISEP:
             if debug: print(f"[QueryONISEP] DEBUG: SEC URL: {sec_url}")
             
             sec_response = self.make_api_request(sec_url)
-            if sec_response:
+            
+            # Handle timeout and service unavailable
+            if isinstance(sec_response, dict) and sec_response.get('status') in ['timeout', 'service_unavailable', 'error']:
+                if debug: print(f"[QueryONISEP] WARNING: SEC API issue: {sec_response.get('message')}")
+            elif sec_response:
                 sec_results = sec_response.get("results", [])
                 # Add source attribution
                 for result in sec_results:
@@ -188,7 +196,11 @@ class QueryONISEP:
             if debug: print(f"[QueryONISEP] DEBUG: SUP URL: {sup_url}")
             
             sup_response = self.make_api_request(sup_url)
-            if sup_response:
+            
+            # Handle timeout and service unavailable
+            if isinstance(sup_response, dict) and sup_response.get('status') in ['timeout', 'service_unavailable', 'error']:
+                if debug: print(f"[QueryONISEP] WARNING: SUP API issue: {sup_response.get('message')}")
+            elif sup_response:
                 sup_results = sup_response.get("results", [])
                 # Add source attribution
                 for result in sup_results:
@@ -199,7 +211,8 @@ class QueryONISEP:
                 print(f"[QueryONISEP] WARNING: Failed to query SUP data")
 
         if not all_results:
-            raise Exception(f"Failed to query enseignement data for {entity_type} {entity_code}")
+            # If no results but we handled timeouts/errors gracefully, return appropriate status
+            return {"status": "service_unavailable", "message": "L'API ONISEP n'a pas répondu", "data": None}
         
         # Remove duplicates before processing
         if debug:
@@ -320,6 +333,11 @@ class QueryONISEP:
         
         # Query formations data
         formations_response = self.make_api_request(formations_url)
+        
+        # Handle timeout and service unavailable
+        if isinstance(formations_response, dict) and formations_response.get('status') in ['timeout', 'service_unavailable', 'error']:
+            return formations_response
+            
         if not formations_response:
             raise Exception(f"Failed to query formations data for {entity_type} {entity_code}")
         

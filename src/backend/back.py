@@ -5,6 +5,16 @@ from flask_cors import CORS
 from .franceGeo import FranceGeo
 from .queryINSEE import QueryINSEE
 from .queryONISEP import QueryONISEP
+from .queryFranceTravail import QueryFranceTravail
+
+# Load environment variables from .env file manually
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                os.environ[key] = value
 
 app = Flask(__name__)
 CORS(app, origins=[
@@ -27,6 +37,9 @@ query_insee = QueryINSEE(france_geo)
 
 # Create an instance of QueryONISEP
 query_onisep = QueryONISEP(france_geo)
+
+# Create an instance of QueryFranceTravail
+query_francetravail = QueryFranceTravail(france_geo)
 
 @app.route('/')
 def home():
@@ -184,6 +197,7 @@ def diploma():
             'message': str(e)
         }), 500
 
+
 @app.route('/dashboard/employment', methods=['GET'])
 def employment():
     """
@@ -224,6 +238,7 @@ def employment():
             'message': str(e)
         }), 500
 
+
 @app.route('/dashboard/higher_education', methods=['GET'])
 def higher_education():
     """
@@ -263,6 +278,7 @@ def higher_education():
             'message': str(e)
         }), 500
 
+
 @app.route('/dashboard/formations', methods=['GET'])
 def formations():
     """
@@ -296,6 +312,47 @@ def formations():
             'status': 'success',
             'data': result
         })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/dashboard/job_seekers', methods=['GET'])
+def job_seekers():
+    """
+    Endpoint to get job seekers (demandeurs d'emploi) data for a specific entity
+    
+    Query parameters:
+    - entity_code: The code of the entity (EPCI, departement, region)
+    - entity_type: Type of entity ("epci", "departement", "region")
+    
+    Returns:
+    - JSON with yearly averaged job seekers data or appropriate error/not available message
+    """
+    entity_code = request.args.get('entity_code')
+    entity_type = request.args.get('entity_type', 'epci')
+
+    print(f"Received request for demandeurs emploi data for entity_code: {entity_code}, entity_type: {entity_type}")
+
+    if not entity_code:
+        return jsonify({
+            'status': 'error',
+            'message': 'Missing entity_code parameter'
+        }), 400
+    
+    try:
+        result = query_francetravail.query_demandeurs_emploi(entity_code, entity_type)
+        
+        # Handle different response statuses
+        if result['status'] == 'not_available':
+            return jsonify(result), 200  # Return 200 with not_available status for communes
+        elif result['status'] == 'error':
+            return jsonify(result), 500
+        else:
+            return jsonify(result), 200
+            
     except Exception as e:
         return jsonify({
             'status': 'error',
