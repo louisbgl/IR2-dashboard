@@ -15,13 +15,14 @@ export class DataRenderer {
             throw new Error('Données d\'entité manquantes');
         }
 
-        const [populationResponse, pcsResponse, diplomaResponse, employmentResponse, higherEducationResponse, formationsResponse] = await Promise.all([
+        const [populationResponse, pcsResponse, diplomaResponse, employmentResponse, higherEducationResponse, formationsResponse, jobSeekersResponse] = await Promise.all([
             fetch(`${this.#apiBaseUrl}/dashboard/population?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/pcs?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/diploma?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/employment?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
             fetch(`${this.#apiBaseUrl}/dashboard/higher_education?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
-            fetch(`${this.#apiBaseUrl}/dashboard/formations?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
+            fetch(`${this.#apiBaseUrl}/dashboard/formations?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`),
+            fetch(`${this.#apiBaseUrl}/dashboard/job_seekers?entity_code=${encodeURIComponent(entityId)}&entity_type=${encodeURIComponent(entityType)}`)
         ]);
 
         const populationData = await populationResponse.json();
@@ -30,27 +31,86 @@ export class DataRenderer {
         const employmentData = await employmentResponse.json();
         const higherEducationData = await higherEducationResponse.json();
         const formationsData = await formationsResponse.json();
+        const jobSeekersData = await jobSeekersResponse.json();
 
+        // Only throw errors for real errors, not timeouts/service unavailable
         if (populationData.status === 'error') throw new Error(populationData.message || 'Erreur récupération population');
         if (pcsData.status === 'error') throw new Error(pcsData.message || 'Erreur récupération PCS');
         if (diplomaData.status === 'error') throw new Error(diplomaData.message || 'Erreur récupération diplôme');
         if (employmentData.status === 'error') throw new Error(employmentData.message || 'Erreur récupération emploi');
         if (higherEducationData.status === 'error') throw new Error(higherEducationData.message || 'Erreur récupération enseignement supérieur');
         if (formationsData.status === 'error') throw new Error(formationsData.message || 'Erreur récupération formations');
+        if (jobSeekersData.status === 'error') throw new Error(jobSeekersData.message || 'Erreur récupération demandeurs d\'emploi');
 
         return {
-            population: populationData.data,
-            pcs: pcsData.data,
-            diploma: diplomaData.data,
-            employment: employmentData.data,
-            higher_education: higherEducationData.data,
-            formations: formationsData.data
+            population: this.#processApiData(populationData, 'INSEE'),
+            pcs: this.#processApiData(pcsData, 'INSEE'),
+            diploma: this.#processApiData(diplomaData, 'INSEE'),
+            employment: this.#processApiData(employmentData, 'INSEE'),
+            higher_education: this.#processApiData(higherEducationData, 'ONISEP'),
+            formations: this.#processApiData(formationsData, 'ONISEP'),
+            job_seekers: this.#processApiData(jobSeekersData, 'France Travail')
         };
     }
 
+    #processApiData(apiResponse, apiName = 'API') {
+        // Handle timeout and service unavailable statuses
+        if (apiResponse.status === 'timeout') {
+            return { 
+                _status: 'timeout', 
+                _message: `L'API ${apiName} n'a pas répondu`,
+                data: null 
+            };
+        }
+        
+        if (apiResponse.status === 'service_unavailable') {
+            return { 
+                _status: 'service_unavailable', 
+                _message: `L'API ${apiName} n'a pas répondu`,
+                data: null 
+            };
+        }
+        
+        if (apiResponse.status === 'error') {
+            return { 
+                _status: 'error', 
+                _message: `L'API ${apiName} n'a pas répondu`,
+                data: null 
+            };
+        }
+        
+        if (apiResponse.status === 'not_available') {
+            return { 
+                _status: 'not_available', 
+                _message: apiResponse.message || 'Données non disponibles',
+                data: null 
+            };
+        }
+        
+        // Return data normally for success status
+        return apiResponse.data;
+    }
+    
+    #checkDataStatus(data) {
+        // Handle special statuses
+        if (data && data._status) {
+            if (data._status === 'not_available') {
+                // Use regular styling for data not available (e.g., commune-level restrictions)
+                return `<div class="no-data-message centered-message"><p>${data._message}</p></div>`;
+            } else {
+                // Use service-status styling for API timeouts/errors
+                return `<div class="no-data-message service-status centered-message"><p>${data._message}</p></div>`;
+            }
+        }
+        return null; // No special status, continue with normal rendering
+    }
+
     renderPopulationTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
         if (!data || Object.keys(data).length === 0) {
-            return `<div class="no-data-message"><p>Aucune donnée disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée disponible.</p></div>`;
         }
 
         const years = Object.keys(data).sort((a, b) => b - a);
@@ -89,8 +149,11 @@ export class DataRenderer {
     }
 
     renderPCSTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
         if (!data || Object.keys(data).length === 0) {
-            return `<div class="no-data-message"><p>Aucune donnée PCS disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée PCS disponible.</p></div>`;
         }
 
         const years = Object.keys(data).sort((a, b) => b - a);
@@ -135,7 +198,7 @@ export class DataRenderer {
 
     renderDiplomaTable(data) {
         if (!data || !data['2022']) {
-            return `<div class="no-data-message"><p>Aucune donnée disponible pour l'année 2022.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée disponible pour l'année 2022.</p></div>`;
         }
 
         const year = '2022';
@@ -178,7 +241,7 @@ export class DataRenderer {
 
     renderEmploymentTable(data) {
         if (!data || Object.keys(data).length === 0) {
-            return `<div class="no-data-message"><p>Aucune donnée d'emploi disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée d'emploi disponible.</p></div>`;
         }
 
         const years = Object.keys(data).sort((a, b) => b - a);
@@ -221,7 +284,7 @@ export class DataRenderer {
 
     renderONISEPStatusTable(data) {
         if (!data || !data.total_etablissements) {
-            return `<div class="no-data-message"><p>Aucune donnée ONISEP disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée ONISEP disponible.</p></div>`;
         }
         
         const total = data.total_etablissements;
@@ -263,7 +326,7 @@ export class DataRenderer {
 
     renderONISEPTypeTable(data) {
         if (!data || !data.type_counts) {
-            return `<div class="no-data-message"><p>Aucune donnée ONISEP disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée ONISEP disponible.</p></div>`;
         }
         
         const typeCounts = data.type_counts;
@@ -292,8 +355,11 @@ export class DataRenderer {
     }
 
     renderFormationsOverviewTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
         if (!data || !data.total_formations) {
-            return `<div class="no-data-message"><p>Aucune donnée de formations disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée de formations disponible.</p></div>`;
         }
         
         const total = data.total_formations;
@@ -355,8 +421,11 @@ export class DataRenderer {
     }
 
     renderFormationsDetailsTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
         if (!data || !data.type_counts) {
-            return `<div class="no-data-message"><p>Aucune donnée de formations disponible.</p></div>`;
+            return `<div class="no-data-message centered-message"><p>Aucune donnée de formations disponible.</p></div>`;
         }
         
         const typeCounts = data.type_counts;
@@ -391,6 +460,286 @@ export class DataRenderer {
                 </table>
             </div>
         `;
+    }
+
+    renderJobSeekersOverviewTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
+        if (!data || Object.keys(data).length === 0) {
+            return '<div class="no-data-message centered-message"><p>Aucune donnée disponible.</p></div>';
+        }
+        
+        let tableHtml = `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sticky-left">Année</th>
+                            <th>Total demandeurs</th>
+                            <th>% main-d'œuvre</th>
+                            <th>15-24 ans</th>
+                            <th>25-34 ans</th>
+                            <th>35-49 ans</th>
+                            <th>H 25-34</th>
+                            <th>F 25-34</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        const years = Object.keys(data).sort((a, b) => b - a);
+        for (const year of years) {
+            const yearData = data[year];
+            const caracts = yearData.filtered_caracts || [];
+            
+            // Find age demographics and gender breakdown
+            const age15_24 = caracts.find(c => c.libCaract === '15-24 ans');
+            const age25_34 = caracts.find(c => c.libCaract === '25-34 ans');
+            const age35_49 = caracts.find(c => c.libCaract === '35-49 ans');
+            const hommes25_34 = caracts.find(c => c.libCaract === 'Hommes - 25-34 ans');
+            const femmes25_34 = caracts.find(c => c.libCaract === 'Femmes - 25-34 ans');
+
+            tableHtml += `
+                <tr>
+                    <td class="sticky-left"><strong>${year}</strong></td>
+                    <td>${yearData.valeurPrincipaleNombre?.toLocaleString() || 'N/A'}</td>
+                    <td>${yearData.valeurSecondairePourcentage || 'N/A'}%</td>
+                    <td>${age15_24 ? `${age15_24.nombre.toLocaleString()} (${age15_24.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${age25_34 ? `${age25_34.nombre.toLocaleString()} (${age25_34.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${age35_49 ? `${age35_49.nombre.toLocaleString()} (${age35_49.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${hommes25_34 ? `${hommes25_34.nombre.toLocaleString()} (${hommes25_34.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${femmes25_34 ? `${femmes25_34.nombre.toLocaleString()} (${femmes25_34.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                </tr>`;
+        }
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </div>`;
+
+        return tableHtml;
+    }
+
+    renderJobSeekersEducationTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
+        if (!data || Object.keys(data).length === 0) {
+            return '<div class="no-data-message centered-message"><p>Aucune donnée disponible.</p></div>';
+        }
+        
+        let tableHtml = `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sticky-left">Année</th>
+                            <th>< CAP-BEP</th>
+                            <th>CAP-BEP</th>
+                            <th>Bac</th>
+                            <th>Bac+2</th>
+                            <th>Bac+3/4</th>
+                            <th>>= Bac+5</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        const years = Object.keys(data).sort((a, b) => b - a);
+        for (const year of years) {
+            const yearData = data[year];
+            const caracts = yearData.filtered_caracts || [];
+            
+            // Find education levels
+            const sans = caracts.find(c => c.libCaract === '< CAP-BEP');
+            const capbep = caracts.find(c => c.libCaract === 'CAP-BEP');
+            const bac = caracts.find(c => c.libCaract === 'Bac');
+            const bac2 = caracts.find(c => c.libCaract === 'Bac + 2');
+            const bac3 = caracts.find(c => c.libCaract === 'bac+3 / bac+4');
+            const bac5 = caracts.find(c => c.libCaract === '>= Bac + 5');
+
+            tableHtml += `
+                <tr>
+                    <td class="sticky-left"><strong>${year}</strong></td>
+                    <td>${sans ? `${sans.nombre.toLocaleString()} (${sans.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${capbep ? `${capbep.nombre.toLocaleString()} (${capbep.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${bac ? `${bac.nombre.toLocaleString()} (${bac.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${bac2 ? `${bac2.nombre.toLocaleString()} (${bac2.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${bac3 ? `${bac3.nombre.toLocaleString()} (${bac3.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${bac5 ? `${bac5.nombre.toLocaleString()} (${bac5.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                </tr>`;
+        }
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </div>`;
+
+        return tableHtml;
+    }
+
+    renderJobSeekersDurationTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
+        if (!data || Object.keys(data).length === 0) {
+            return '<div class="no-data-message centered-message"><p>Aucune donnée disponible.</p></div>';
+        }
+        
+        let tableHtml = `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sticky-left">Année</th>
+                            <th>< 3 mois</th>
+                            <th>3-6 mois</th>
+                            <th>6-12 mois</th>
+                            <th>1-2 ans</th>
+                            <th>2+ ans</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        const years = Object.keys(data).sort((a, b) => b - a);
+        for (const year of years) {
+            const yearData = data[year];
+            const caracts = yearData.filtered_caracts || [];
+            
+            // Find duration categories only
+            const chm1 = caracts.find(c => c.libCaract === 'Moins de 3 mois');
+            const chm2 = caracts.find(c => c.libCaract === 'De 3 mois à moins de 6 mois');
+            const chm3 = caracts.find(c => c.libCaract === 'De 6 mois à moins de 12 mois');
+            const chm4 = caracts.find(c => c.libCaract === 'De 1 an à moins de 2 ans');
+            const chm5 = caracts.find(c => c.libCaract === '2 ans et +');
+
+            tableHtml += `
+                <tr>
+                    <td class="sticky-left"><strong>${year}</strong></td>
+                    <td>${chm1 ? `${chm1.nombre.toLocaleString()} (${chm1.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${chm2 ? `${chm2.nombre.toLocaleString()} (${chm2.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${chm3 ? `${chm3.nombre.toLocaleString()} (${chm3.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${chm4 ? `${chm4.nombre.toLocaleString()} (${chm4.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${chm5 ? `${chm5.nombre.toLocaleString()} (${chm5.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                </tr>`;
+        }
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </div>`;
+
+        return tableHtml;
+    }
+
+    renderJobSeekersQualificationTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
+        if (!data || Object.keys(data).length === 0) {
+            return '<div class="no-data-message centered-message"><p>Aucune donnée disponible.</p></div>';
+        }
+        
+        let tableHtml = `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sticky-left">Année</th>
+                            <th>Ouvriers non-qual.</th>
+                            <th>Ouvriers qual.</th>
+                            <th>Employés non-qual.</th>
+                            <th>Employés qual.</th>
+                            <th>Techniciens</th>
+                            <th>Cadres</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        const years = Object.keys(data).sort((a, b) => b - a);
+        for (const year of years) {
+            const yearData = data[year];
+            const caracts = yearData.filtered_caracts || [];
+            
+            // Find qualification categories
+            const onq = caracts.find(c => c.libCaract === 'Ouvriers non qualifiés');
+            const oq = caracts.find(c => c.libCaract === 'Ouvriers qualifiés');
+            const enq = caracts.find(c => c.libCaract === 'Employés non qualifiés');
+            const eq = caracts.find(c => c.libCaract === 'Employés qualifiés');
+            const tech = caracts.find(c => c.libCaract === 'Agents de maîtrise / Techniciens');
+            const cadres = caracts.find(c => c.libCaract === 'Cadres');
+
+            tableHtml += `
+                <tr>
+                    <td class="sticky-left"><strong>${year}</strong></td>
+                    <td>${onq ? `${onq.nombre.toLocaleString()} (${onq.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${oq ? `${oq.nombre.toLocaleString()} (${oq.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${enq ? `${enq.nombre.toLocaleString()} (${enq.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${eq ? `${eq.nombre.toLocaleString()} (${eq.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${tech ? `${tech.nombre.toLocaleString()} (${tech.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${cadres ? `${cadres.nombre.toLocaleString()} (${cadres.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                </tr>`;
+        }
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </div>`;
+
+        return tableHtml;
+    }
+
+    renderJobSeekersExperienceTable(data) {
+        const statusCheck = this.#checkDataStatus(data);
+        if (statusCheck) return statusCheck;
+        
+        if (!data || Object.keys(data).length === 0) {
+            return '<div class="no-data-message centered-message"><p>Aucune donnée disponible.</p></div>';
+        }
+        
+        let tableHtml = `
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="sticky-left">Année</th>
+                            <th>Non renseigné</th>
+                            <th>< 1 an</th>
+                            <th>1-2 ans</th>
+                            <th>2-4 ans</th>
+                            <th>4+ ans</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        const years = Object.keys(data).sort((a, b) => b - a);
+        for (const year of years) {
+            const yearData = data[year];
+            const caracts = yearData.filtered_caracts || [];
+            
+            // Find experience categories
+            const nr = caracts.find(c => c.libCaract === 'Non renseigné');
+            const exp1 = caracts.find(c => c.libCaract === 'Moins d\'un an');
+            const exp2 = caracts.find(c => c.libCaract === '1 à 2 ans');
+            const exp3 = caracts.find(c => c.libCaract === '2 à 4 ans');
+            const exp4 = caracts.find(c => c.libCaract === '4 ans et +');
+
+            tableHtml += `
+                <tr>
+                    <td class="sticky-left"><strong>${year}</strong></td>
+                    <td>${nr ? `${nr.nombre.toLocaleString()} (${nr.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${exp1 ? `${exp1.nombre.toLocaleString()} (${exp1.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${exp2 ? `${exp2.nombre.toLocaleString()} (${exp2.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${exp3 ? `${exp3.nombre.toLocaleString()} (${exp3.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                    <td>${exp4 ? `${exp4.nombre.toLocaleString()} (${exp4.pourcentage || 'N/A'}%)` : 'N/A'}</td>
+                </tr>`;
+        }
+
+        tableHtml += `
+                    </tbody>
+                </table>
+            </div>`;
+
+        return tableHtml;
     }
 
     renderGraphPlaceholder() {

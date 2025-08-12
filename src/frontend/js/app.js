@@ -83,12 +83,18 @@ class DashboardApp {
         { id: 'card5', row: 2, col: 0 },
         { id: 'card6', row: 2, col: 1 },
         { id: 'card7', row: 3, col: 0 },
-        { id: 'card8', row: 3, col: 1 }
+        { id: 'card8', row: 3, col: 1 },
+        { id: 'card9', row: 4, col: 0 },
+        { id: 'card10', row: 4, col: 1 },
+        { id: 'card11', row: 5, col: 0 },
+        { id: 'card12', row: 5, col: 1 },
+        { id: 'card13', row: 6, col: 0 }
     ];
     #persistKey = 'dashboardGridLayout';
     #cardModes = { 
         card1: 'table', card2: 'table', card3: 'table', card4: 'table', 
-        card5: 'table', card6: 'table', card7: 'table', card8: 'table' 
+        card5: 'table', card6: 'table', card7: 'table', card8: 'table',
+        card9: 'table', card10: 'table', card11: 'table', card12: 'table', card13: 'table'
     };
 
     async initialize() {
@@ -155,7 +161,12 @@ class DashboardApp {
                 card5: { entityName, entityType, data: data.higher_education },
                 card6: { entityName, entityType, data: data.higher_education },
                 card7: { entityName, entityType, data: data.formations },
-                card8: { entityName, entityType, data: data.formations }
+                card8: { entityName, entityType, data: data.formations },
+                card9: { entityName, entityType, data: data.job_seekers },
+                card10: { entityName, entityType, data: data.job_seekers },
+                card11: { entityName, entityType, data: data.job_seekers },
+                card12: { entityName, entityType, data: data.job_seekers },
+                card13: { entityName, entityType, data: data.job_seekers }
             };
             
             this.#renderGrid();
@@ -179,7 +190,7 @@ class DashboardApp {
         
         cardGrid.innerHTML = '';
         
-        if (!this.#cardData.card1 && !this.#cardData.card2 && !this.#cardData.card3 && !this.#cardData.card4 && !this.#cardData.card5 && !this.#cardData.card6 && !this.#cardData.card7 && !this.#cardData.card8) {
+        if (!this.#cardData.card1 && !this.#cardData.card2 && !this.#cardData.card3 && !this.#cardData.card4 && !this.#cardData.card5 && !this.#cardData.card6 && !this.#cardData.card7 && !this.#cardData.card8 && !this.#cardData.card9 && !this.#cardData.card10 && !this.#cardData.card11 && !this.#cardData.card12 && !this.#cardData.card13) {
             return;
         }
         
@@ -191,17 +202,28 @@ class DashboardApp {
             card5: { title: "Établissements par statut", description: '', renderer: 'onisep-status' },
             card6: { title: "Types d'établissements", description: '', renderer: 'onisep-type' },
             card7: { title: "Vue d'ensemble des formations", description: '', renderer: 'formations-overview' },
-            card8: { title: "Types de formations", description: '', renderer: 'formations-details' }
+            card8: { title: "Types de formations", description: '', renderer: 'formations-details' },
+            card9: { title: "Vue d'ensemble des demandeurs d'emploi", description: '', renderer: 'job-seekers-overview' },
+            card10: { title: "Demandeurs d'emploi par durée de recherche", description: '', renderer: 'job-seekers-duration' },
+            card11: { title: "Demandeurs d'emploi par niveau d'éducation", description: '', renderer: 'job-seekers-education' },
+            card12: { title: "Demandeurs d'emploi par qualification professionnelle", description: '', renderer: 'job-seekers-qualification' },
+            card13: { title: "Demandeurs d'emploi par expérience professionnelle", description: '', renderer: 'job-seekers-experience' }
         };
         
         const cards = {};
-        for (const cardId of ['card1', 'card2', 'card3', 'card4', 'card5', 'card6', 'card7', 'card8']) {
+        for (const cardId of ['card1', 'card2', 'card3', 'card4', 'card5', 'card6', 'card7', 'card8', 'card9', 'card10', 'card11', 'card12', 'card13']) {
             const cardInfo = this.#cardData[cardId];
             const config = cardConfigs[cardId];
             const mode = this.#cardModes[cardId] || 'table';
             
             let contentHtml = '';
-            if (mode === 'table') {
+            let cardDescription = config.description;
+            
+            // Special handling for job seekers cards when entity is commune
+            if (['card9', 'card10', 'card11', 'card12', 'card13'].includes(cardId) && cardInfo && cardInfo.entityType === 'commune') {
+                cardDescription = 'Non disponible au niveau communal';
+                contentHtml = '<div class="no-data-message centered-message"><p>Données non disponibles</p></div>';
+            } else if (mode === 'table') {
                 contentHtml = this.#renderTableContent(config.renderer, cardInfo);
             } else {
                 contentHtml = this.#dataRenderer.renderGraphPlaceholder();
@@ -210,7 +232,7 @@ class DashboardApp {
             cards[cardId] = createCard({
                 id: cardId,
                 title: config.title,
-                description: config.description,
+                description: cardDescription,
                 contentHtml,
                 mode,
                 onToggleMode: () => this.#handleModeToggle(cardId)
@@ -245,6 +267,16 @@ class DashboardApp {
                 return this.#dataRenderer.renderFormationsOverviewTable(cardInfo.data);
             case 'formations-details':
                 return this.#dataRenderer.renderFormationsDetailsTable(cardInfo.data);
+            case 'job-seekers-overview':
+                return this.#dataRenderer.renderJobSeekersOverviewTable(cardInfo.data);
+            case 'job-seekers-duration':
+                return this.#dataRenderer.renderJobSeekersDurationTable(cardInfo.data);
+            case 'job-seekers-education':
+                return this.#dataRenderer.renderJobSeekersEducationTable(cardInfo.data);
+            case 'job-seekers-qualification':
+                return this.#dataRenderer.renderJobSeekersQualificationTable(cardInfo.data);
+            case 'job-seekers-experience':
+                return this.#dataRenderer.renderJobSeekersExperienceTable(cardInfo.data);
             default:
                 return `<div class="no-data-message"><p>Type de données non reconnu.</p></div>`;
         }
