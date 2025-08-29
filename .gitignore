@@ -1,11 +1,35 @@
+# Development and testing files (don't push to prod)
+tests/
+docs/
+archive/
+start_backend.sh
+CLAUDE.md
+.claude/
+.env.example
+CODE_REVIEW.md
+
+# Temporary files
 *.txt
 !requirements.txt
 *.json
-.env
-useful/
-tests/
 test.py
+
+# Environment and config
+.env
+
+# Python
 __pycache__/
-manual_query.sh
-CLAUDE.md
-z_francetravail/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
