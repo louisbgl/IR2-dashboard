@@ -1,0 +1,326 @@
+/* Employment Data Rendering Styles */
+
+/* Data Overview */
+.employment-data-container .overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-lg);
+    border-left: 4px solid var(--primary-color);
+    padding-left: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.employment-data-container .overview-header h4 {
+    color: var(--primary-color);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    flex: 1;
+}
+
+.total-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.total-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.total-value {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+}
+
+/* Horizontal metrics layout */
+.metrics-horizontal {
+    background: var(--background-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    gap: 2rem;
+}
+
+.metric-row:last-child {
+    margin-bottom: 0;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.employment-data-container .metric-value {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+/* Employment Tables */
+.employment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--light-bg);
+}
+
+.employment-table th {
+    background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+    padding: var(--space-lg);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.employment-table td {
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--light-bg);
+    font-size: var(--font-size-sm);
+}
+
+.employment-table tr:nth-child(even) td {
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.01) 0%, rgba(39, 174, 96, 0.02) 100%);
+}
+
+.employment-table tr:hover td {
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.04) 0%, rgba(249, 177, 64, 0.02) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.employment-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Employment Rate Styling */
+.employment-rate {
+    font-weight: var(--font-weight-bold);
+    color: #27ae60;
+}
+
+.employment-rate.high {
+    color: #27ae60;
+}
+
+.employment-rate.medium {
+    color: var(--accent-color);
+}
+
+.employment-rate.low {
+    color: var(--error-color);
+}
+
+/* Employment Statistics Cards */
+.employment-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.employment-stat {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fcf9 100%);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(39, 174, 96, 0.08);
+    text-align: center;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.employment-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+}
+
+.employment-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.12);
+}
+
+.employment-stat-value {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: #27ae60;
+    margin-bottom: var(--space-xs);
+}
+
+.employment-stat-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Employment Trends */
+.employment-trends {
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.03) 0%, rgba(46, 204, 113, 0.02) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    margin: var(--space-lg) 0;
+    border-left: 4px solid #27ae60;
+}
+
+.employment-trends h4 {
+    color: #27ae60;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.employment-trends h4::before {
+    content: '📈';
+    font-size: 1.2em;
+}
+
+/* Job Sectors */
+.job-sectors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.job-sector {
+    background: var(--light-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    border: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.job-sector:hover {
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.1);
+    border-color: rgba(39, 174, 96, 0.2);
+}
+
+.job-sector-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+}
+
+.job-sector-count {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: #27ae60;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .employment-table th,
+    .employment-table td {
+        padding: var(--space-md);
+        font-size: var(--font-size-xs);
+    }
+    
+    .employment-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .employment-stat {
+        padding: var(--space-lg);
+    }
+    
+    .job-sectors {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .metric-item {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Stack table content for employment data */
+    .employment-table,
+    .employment-table thead,
+    .employment-table tbody,
+    .employment-table th,
+    .employment-table td,
+    .employment-table tr {
+        display: block;
+    }
+    
+    .employment-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .employment-table tr {
+        border: 1px solid var(--border-light);
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        background: var(--light-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .employment-table td {
+        border: none;
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 50% !important;
+    }
+    
+    .employment-table td:before {
+        content: attr(data-label) ": ";
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: var(--font-weight-semibold);
+        color: #27ae60;
+        text-transform: uppercase;
+        font-size: var(--font-size-xs);
+    }
+}

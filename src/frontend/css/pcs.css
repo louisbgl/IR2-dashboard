@@ -1,0 +1,387 @@
+/* PCS (Socio-Professional Categories) Renderer Styles */
+
+.pcs-data-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+/* Data Overview */
+.data-overview {
+    background: linear-gradient(135deg, rgba(33, 159, 172, 0.03) 0%, rgba(249, 177, 64, 0.02) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    border-left: 4px solid var(--primary-color);
+}
+
+.overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.overview-header h4 {
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+}
+
+.total-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.total-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.total-value {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+}
+
+/* PCS Visualization Layout */
+.pcs-visualization {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+}
+
+/* Left column for chart and trends */
+.pcs-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+/* Chart Section */
+.chart-section {
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    border: 1px solid var(--border-light);
+}
+
+.chart-section h5 {
+    color: var(--primary-color);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-lg) 0;
+    text-align: center;
+}
+
+/* Donut Chart */
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
+
+.donut-chart {
+    position: relative;
+    width: 280px;
+    height: 280px;
+}
+
+.pcs-chart-svg {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.chart-segment {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform-origin: center;
+}
+
+.chart-segment:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+.chart-center-label {
+    font-size: 12px;
+    fill: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.chart-center-value {
+    font-size: 16px;
+    fill: var(--primary-color);
+    font-weight: var(--font-weight-bold);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Chart Tooltip */
+.chart-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 0.2s ease;
+}
+
+/* Compact Trends Under Chart */
+.trends-compact {
+    margin-top: var(--space-lg);
+    padding: var(--space-lg);
+    background: var(--light-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.trends-compact h6 {
+    color: var(--primary-color);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-sm) 0;
+    text-align: center;
+}
+
+.trends-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.trend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-sm);
+}
+
+.trend-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.trend-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.trend-category {
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.1;
+    flex: 1;
+    margin-right: var(--space-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.trend-change {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.trend-change.positive {
+    color: #27ae60;
+}
+
+.trend-change.negative {
+    color: #e74c3c;
+}
+
+/* Categories List */
+.categories-list {
+    background: var(--light-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    border: 1px solid var(--border-light);
+}
+
+.categories-list h5 {
+    color: var(--primary-color);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-lg) 0;
+    text-align: center;
+}
+
+/* Trends Section */
+.trends-section {
+    background: var(--light-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    border: 1px solid var(--border-light);
+}
+
+.trends-section h5 {
+    color: var(--primary-color);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-lg) 0;
+    text-align: center;
+}
+
+/* Categories Grid */
+.categories-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.category-item {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    border: 1px solid var(--border-light);
+    transition: var(--transition-fast);
+}
+
+.category-item:hover {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(33, 159, 172, 0.08);
+    transform: translateY(-1px);
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.category-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.category-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.category-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.category-value {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+}
+
+.category-percentage {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Category Bar */
+.category-bar {
+    height: 6px;
+    background: var(--border-light);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: var(--space-xs);
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+
+/* Large screens - allow full text in trends */
+@media (min-width: 1200px) {
+    .trend-category {
+        white-space: normal;
+        text-overflow: unset;
+        overflow: visible;
+        max-width: none;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .pcs-visualization {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+    
+    .overview-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .total-indicator {
+        align-items: center;
+        text-align: center;
+    }
+    
+    .donut-chart {
+        width: 240px;
+        height: 240px;
+    }
+    
+    .category-info {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-xs);
+    }
+    
+    .category-stats {
+        align-items: flex-start;
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-container {
+        padding: var(--space-lg);
+    }
+    
+    .donut-chart {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .categories-list {
+        padding: var(--space-lg);
+    }
+}

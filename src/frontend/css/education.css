@@ -1,0 +1,311 @@
+/* Education Data Rendering Styles */
+
+/* Education Tables */
+.education-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--light-bg);
+}
+
+.education-table th {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+    padding: var(--space-lg);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.education-table td {
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--light-bg);
+    font-size: var(--font-size-sm);
+}
+
+.education-table tr:nth-child(even) td {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.01) 0%, rgba(155, 89, 182, 0.02) 100%);
+}
+
+.education-table tr:hover td {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.04) 0%, rgba(249, 177, 64, 0.02) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.education-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Education Level Styling */
+.education-level {
+    font-weight: var(--font-weight-semibold);
+}
+
+.education-level.higher {
+    color: #9b59b6;
+}
+
+.education-level.secondary {
+    color: var(--primary-color);
+}
+
+.education-level.primary {
+    color: var(--accent-color);
+}
+
+/* Diploma Statistics */
+.diploma-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.diploma-stat {
+    background: linear-gradient(145deg, #ffffff 0%, #faf9fc 100%);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(155, 89, 182, 0.08);
+    text-align: center;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.diploma-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+.diploma-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.12);
+}
+
+.diploma-stat-value {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: #9b59b6;
+    margin-bottom: var(--space-xs);
+}
+
+.diploma-stat-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Education Insights */
+.education-insights {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.03) 0%, rgba(142, 68, 173, 0.02) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    margin: var(--space-lg) 0;
+    border-left: 4px solid #9b59b6;
+}
+
+.education-insights h4 {
+    color: #9b59b6;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.education-insights h4::before {
+    content: '🎓';
+    font-size: 1.2em;
+}
+
+.education-insights ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.education-insights li {
+    padding: var(--space-sm) 0;
+    color: var(--text-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    position: relative;
+    padding-left: var(--space-lg);
+}
+
+.education-insights li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #9b59b6;
+    font-weight: var(--font-weight-bold);
+}
+
+/* Higher Education Establishments */
+.higher-education-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.higher-education-item {
+    background: var(--light-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    border: 1px solid var(--border-light);
+    transition: var(--transition);
+    position: relative;
+}
+
+.higher-education-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+.higher-education-item:hover {
+    box-shadow: 0 2px 8px rgba(155, 89, 182, 0.1);
+    border-color: rgba(155, 89, 182, 0.2);
+}
+
+.higher-education-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-size-md);
+}
+
+.higher-education-type {
+    color: #9b59b6;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Formation Programs */
+.formations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.formation-item {
+    background: linear-gradient(145deg, #ffffff 0%, #faf9fc 100%);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    border: 1px solid rgba(155, 89, 182, 0.1);
+    transition: var(--transition);
+}
+
+.formation-item:hover {
+    box-shadow: 0 2px 8px rgba(155, 89, 182, 0.1);
+    transform: translateY(-2px);
+}
+
+.formation-title {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+}
+
+.formation-provider {
+    color: #9b59b6;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .education-table th,
+    .education-table td {
+        padding: var(--space-md);
+        font-size: var(--font-size-xs);
+    }
+    
+    .diploma-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .diploma-stat {
+        padding: var(--space-lg);
+    }
+    
+    .higher-education-list,
+    .formations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Stack table content for education data */
+    .education-table,
+    .education-table thead,
+    .education-table tbody,
+    .education-table th,
+    .education-table td,
+    .education-table tr {
+        display: block;
+    }
+    
+    .education-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .education-table tr {
+        border: 1px solid var(--border-light);
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        background: var(--light-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .education-table td {
+        border: none;
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 50% !important;
+    }
+    
+    .education-table td:before {
+        content: attr(data-label) ": ";
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: var(--font-weight-semibold);
+        color: #9b59b6;
+        text-transform: uppercase;
+        font-size: var(--font-size-xs);
+    }
+}

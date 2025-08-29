@@ -3,30 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard IR2</title>
-    <link rel="stylesheet" href="css/css-variables.css">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/search-form.css">
-    <link rel="stylesheet" href="css/search-results.css">
-    <link rel="stylesheet" href="css/entity-display.css">
-    <link rel="stylesheet" href="css/table.css">
-    <link rel="stylesheet" href="css/dragdrop.css">
-    <link rel="stylesheet" href="css/mobile-message.css">
+    <title>IR2 Dashboard - Document Style Prototype</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/search.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Data rendering specific CSS -->
+    <link rel="stylesheet" href="css/population.css">
+    <link rel="stylesheet" href="css/pcs.css">
+    <link rel="stylesheet" href="css/diploma.css">
+    <link rel="stylesheet" href="css/employment.css">
+    <link rel="stylesheet" href="css/education.css">
+    <link rel="stylesheet" href="css/map.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 </head>
 <body>
-    <header>
-        <h1>Dashboard IR2</h1>
-    </header>
-
-    <div class="container">
-        <div class="dashboard-grid">
-            <div class="search-section">
+    <div class="app-container">
+        <header class="main-header">
+            <h1>Dashboard IR2</h1>
+            <p class="subtitle">Données démographiques et économiques françaises</p>
+        </header>
+        <!-- Search Container -->
+        <section class="content-container">
+            <div class="search-container">
                 <div class="search-bar">
                     <div class="search-input-wrapper">
                         <input type="text" id="searchInput" class="search-input" 
-                               placeholder="Rechercher une entité géographique...">
+                               placeholder="Rechercher une commune, EPCI, département ou région...">
                         <button id="searchButton" class="search-button">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -37,38 +41,262 @@
                 </div>
                 
                 <div id="errorMessage" class="error-message"></div>
-                <div id="loadingIndicator" class="loading">
+                <div id="loadingIndicator" class="loading" style="display: none;">
                     <div class="spinner"></div>
-                    <p>Chargement en cours...</p>
                 </div>
                 
                 <div id="searchResults" class="search-results"></div>
                 <div id="selectedEntity" class="selected-entity" style="display: none;"></div>
             </div>
-            <div id="dashboard-card-grid"></div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Mobile Message (hidden by default) -->
-    <div id="mobile-message" class="mobile-message" style="display: none;">
-        <div class="mobile-message-container">
-            <div class="mobile-message-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="3" y1="9" x2="21" y2="9"/>
-                    <line x1="9" y1="21" x2="9" y2="9"/>
-                </svg>
+        <!-- Data Availability Warnings (Optional) -->
+        <section class="content-container data-warnings-container" id="data-warnings-container">
+            <div class="data-warnings" id="data-warnings">
+                <!-- Warning messages will be inserted here -->
             </div>
-            <h2 class="mobile-message-title">Tableau de bord IR2</h2>
-            <p class="mobile-message-text">
-                Cette interface est optimisée pour les ordinateurs de bureau afin de vous offrir la meilleure expérience de visualisation des données.
-            </p>
-            <p class="mobile-message-suggestion">
-                📱 → 💻 Visitez-nous depuis un ordinateur pour accéder au tableau de bord complet
-            </p>
-        </div>
+        </section>
+
+        <!-- Dashboard Container -->
+        <section class="content-container dashboard-container" id="dashboard-container" style="display: none;">
+            <!-- Loading Overlay -->
+            <div class="dashboard-loading-overlay" id="dashboard-loading-overlay" style="display: none;">
+                <div class="loading-content">
+                    <h3 class="loading-title" id="loading-title">Chargement des données...</h3>
+                    <div class="loading-bar-container">
+                        <div class="loading-bar">
+                            <div class="loading-bar-fill" id="loading-bar-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="loading-percentage" id="loading-percentage">0%</div>
+                    </div>
+                    <div class="loading-status" id="loading-status">0/8 endpoints completed</div>
+                </div>
+            </div>
+            
+            <main class="dashboard-document" id="dashboard-content" style="display: none;">
+
+            <!-- Quick Overview Section -->
+            <section class="overview-section">
+                <h2>📋 Vue d'ensemble</h2>
+                <div class="key-metrics">
+                    <div class="metric">
+                        <span class="metric-value" id="total-population">-</span>
+                        <span class="metric-label">👥 Population totale</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value" id="employment-rate">-</span>
+                        <span class="metric-label">💼 Taux d'emploi</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value" id="job-seekers-total">-</span>
+                        <span class="metric-label">🔍 Demandeurs d'emploi</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value" id="higher-education-count">-</span>
+                        <span class="metric-label">🎓 Établissements de formation</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Demographics Section -->
+            <section class="main-section">
+                <div class="section-header">
+                    <h2>👥 Démographie</h2>
+                    <button class="section-collapse-btn" data-target="demographics-subsections">
+                        <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18,15 12,9 6,15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="subsections-container" id="demographics-subsections">
+                    <div class="subsection" id="population-subsection">
+                        <div class="subsection-header">
+                            <h3>📊 Population par tranches d'âge</h3>
+                            <button class="subsection-toggle-btn" data-target="population-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="population-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection" id="pcs-subsection">
+                        <div class="subsection-header">
+                            <h3>👔 Catégories socio-professionnelles</h3>
+                            <button class="subsection-toggle-btn" data-target="pcs-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="pcs-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection" id="diploma-subsection">
+                        <div class="subsection-header">
+                            <h3>🎓 Niveaux de formation</h3>
+                            <button class="subsection-toggle-btn" data-target="diploma-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="diploma-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Employment Section -->
+            <section class="main-section">
+                <div class="section-header">
+                    <h2>💼 Emploi</h2>
+                    <button class="section-collapse-btn" data-target="employment-subsections">
+                        <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18,15 12,9 6,15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="subsections-container" id="employment-subsections">
+                    <div class="subsection" id="employment-subsection">
+                        <div class="subsection-header">
+                            <h3>📈 Statistiques d'emploi</h3>
+                            <button class="subsection-toggle-btn" data-target="employment-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="employment-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection" id="job-seekers-subsection">
+                        <div class="subsection-header">
+                            <h3>🔍 Demandeurs d'emploi</h3>
+                            <button class="subsection-toggle-btn" data-target="job-seekers-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="job-seekers-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection" id="perspectives-subsection">
+                        <div class="subsection-header">
+                            <h3>💡 Perspectives employeurs</h3>
+                            <button class="subsection-toggle-btn" data-target="perspectives-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="perspectives-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Training & Education Section -->
+            <section class="main-section">
+                <div class="section-header">
+                    <h2>🎓 Formation et Enseignement</h2>
+                    <button class="section-collapse-btn" data-target="education-subsections">
+                        <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18,15 12,9 6,15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="subsections-container" id="education-subsections">
+                    <div class="subsection" id="higher-education-subsection">
+                        <div class="subsection-header">
+                            <h3>🏢 Établissements d'enseignement supérieur</h3>
+                            <button class="subsection-toggle-btn" data-target="higher-education-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="higher-education-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection" id="formations-subsection">
+                        <div class="subsection-header">
+                            <h3>📚 Formations disponibles</h3>
+                            <button class="subsection-toggle-btn" data-target="formations-content">
+                                <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18,15 12,9 6,15"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="subsection-content" id="formations-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée disponible</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Geographic Visualization Section -->
+            <section class="main-section">
+                <div class="section-header">
+                    <h2>📍 Carte des Services</h2>
+                    <button class="section-collapse-btn" data-target="map-subsections">
+                        <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18,15 12,9 6,15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="subsections-container" id="map-subsections">
+                    <div class="subsection" id="map-subsection">
+                        <div class="subsection-content" id="map-content">
+                            <div class="no-data-message">
+                                <p>Aucune donnée de localisation disponible</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            </main>
+        </section>
     </div>
 
-    <script type="module" src="js/app.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

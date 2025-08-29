@@ -1,0 +1,504 @@
+/* Population Data Rendering Styles */
+
+/* Population Container Layout */
+.population-data-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+/* Insights Panel */
+.population-insights {
+    background: linear-gradient(135deg, rgba(33, 159, 172, 0.03) 0%, rgba(249, 177, 64, 0.02) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    border-left: 4px solid var(--primary-color);
+    margin-bottom: var(--space-lg);
+}
+
+.population-insights h4 {
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-lg) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+}
+
+.insight-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(33, 159, 172, 0.1);
+}
+
+.insight-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.insight-value {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+}
+
+.insight-value.growth-positive {
+    color: #27ae60;
+}
+
+.insight-value.growth-negative {
+    color: #e74c3c;
+}
+
+/* Two-Panel Layout */
+.data-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+}
+
+.data-panel {
+    background: var(--light-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+}
+
+.panel-header {
+    background: linear-gradient(135deg, #f8fafb 0%, #ffffff 100%);
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h4 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+
+
+/* Table Panel */
+.table-panel .table-responsive {
+    margin: 0;
+}
+
+.table-panel .data-table {
+    margin: 0;
+    border-radius: 0;
+}
+
+/* Chart Panel */
+.chart-panel {
+    min-height: 380px; /* Increased to accommodate legend below */
+}
+
+/* Age Evolution Chart */
+.age-evolution-chart {
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+    min-height: 280px;
+}
+
+.population-chart-svg {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+}
+
+.age-line {
+    transition: stroke-width 0.2s ease;
+}
+
+.age-line:hover {
+    stroke-width: 4;
+}
+
+.data-point {
+    transition: r 0.2s ease;
+    cursor: pointer;
+}
+
+.data-point:hover {
+    r: 6;
+}
+
+.axis-label {
+    font-size: 10px;
+    fill: var(--text-secondary);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.chart-title {
+    font-size: 12px;
+    fill: var(--primary-color);
+    font-weight: 600;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.legend-label {
+    font-size: 10px;
+    fill: var(--text-primary);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.legend-item {
+    cursor: pointer;
+}
+
+.legend-item:hover .legend-label {
+    fill: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Chart Legend Below Graph */
+.chart-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+
+.chart-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+
+.chart-legend .legend-item:hover {
+    background: rgba(33, 159, 172, 0.05);
+}
+
+.legend-color {
+    width: 16px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.chart-legend .legend-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.chart-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 0.2s ease;
+}
+
+.tooltip-content {
+    font-weight: var(--font-weight-medium);
+}
+
+
+/* Enhanced Table Styling for Population */
+.population-table .sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a7f89 100%);
+    color: white;
+}
+
+.population-table .year-cell {
+    background: linear-gradient(135deg, #f8fafb 0%, #ffffff 100%) !important;
+    color: var(--primary-color) !important;
+    font-weight: var(--font-weight-bold);
+}
+
+.population-table .total-column {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #e09a2b 100%);
+    color: white;
+}
+
+.population-table .total-cell {
+    background: linear-gradient(135deg, rgba(249, 177, 64, 0.1) 0%, rgba(249, 177, 64, 0.05) 100%) !important;
+    color: var(--accent-color) !important;
+    font-weight: var(--font-weight-bold);
+}
+
+.population-table .number-cell {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.population-table td,
+.population-table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.population-table .sticky-left {
+    text-align: center;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .data-panels {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+    
+    .insights-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .age-evolution-chart {
+        min-height: 200px;
+        padding: var(--space-lg);
+    }
+}
+
+/* Population Tables */
+.population-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--light-bg);
+}
+
+.population-table th {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a7f89 100%);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+    text-align: center;
+    padding: var(--space-lg);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.population-table td {
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--light-bg);
+    font-size: var(--font-size-sm);
+}
+
+.population-table tr:nth-child(even) td {
+    background: linear-gradient(135deg, rgba(33, 159, 172, 0.01) 0%, rgba(33, 159, 172, 0.02) 100%);
+}
+
+.population-table tr:hover td {
+    background: linear-gradient(135deg, rgba(33, 159, 172, 0.04) 0%, rgba(249, 177, 64, 0.02) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.population-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Age Group Styling */
+.age-group-header {
+    background: linear-gradient(135deg, rgba(33, 159, 172, 0.1) 0%, rgba(33, 159, 172, 0.05) 100%);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+}
+
+.age-percentage {
+    font-weight: var(--font-weight-semibold);
+    color: var(--accent-color);
+}
+
+/* Population Insights */
+.population-insights {
+    background: linear-gradient(135deg, rgba(33, 159, 172, 0.03) 0%, rgba(249, 177, 64, 0.02) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    margin: var(--space-lg) 0;
+    border-left: 4px solid var(--primary-color);
+}
+
+.population-insights h4 {
+    color: var(--primary-color);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.population-insights h4::before {
+    content: '📊';
+    font-size: 1.2em;
+}
+
+.population-insights ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.population-insights li {
+    padding: var(--space-sm) 0;
+    color: var(--text-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    position: relative;
+    padding-left: var(--space-lg);
+}
+
+.population-insights li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+    font-weight: var(--font-weight-bold);
+}
+
+.population-insights .highlight {
+    font-weight: var(--font-weight-semibold);
+    color: var(--primary-color);
+}
+
+/* Population Summary Cards */
+.population-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.population-metric {
+    background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(33, 159, 172, 0.08);
+    text-align: center;
+    transition: var(--transition);
+}
+
+.population-metric:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 159, 172, 0.12);
+}
+
+.population-metric-value {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+    margin-bottom: var(--space-xs);
+}
+
+.population-metric-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .population-table th,
+    .population-table td {
+        padding: var(--space-md);
+        font-size: var(--font-size-xs);
+    }
+    
+    .population-insights {
+        padding: var(--space-lg);
+    }
+    
+    .population-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .population-metric {
+        padding: var(--space-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    /* Stack table content for population data */
+    .population-table,
+    .population-table thead,
+    .population-table tbody,
+    .population-table th,
+    .population-table td,
+    .population-table tr {
+        display: block;
+    }
+    
+    .population-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .population-table tr {
+        border: 1px solid var(--border-light);
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        background: var(--light-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .population-table td {
+        border: none;
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 50% !important;
+    }
+    
+    .population-table td:before {
+        content: attr(data-label) ": ";
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: var(--font-weight-semibold);
+        color: var(--primary-color);
+        text-transform: uppercase;
+        font-size: var(--font-size-xs);
+    }
+}

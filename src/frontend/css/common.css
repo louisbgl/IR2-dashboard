@@ -1,0 +1,248 @@
+/* Common Variables and Base Styles */
+:root {
+    /* Colors from existing system */
+    --primary-color: #219fac;
+    --secondary-color: #f9b140;
+    --accent-color: #f9b140;
+    --text-color: #333;
+    --text-primary: #2c3e50;
+    --text-secondary: #6c757d;
+    --text-muted: #495057;
+    --light-bg: #ffffff;
+    --body-bg: #f9f9f9;
+    --background: #ffffff;
+    --background-secondary: #f8f9fa;
+    --border-color: #e0e0e0;
+    --border-light: #e1e8ed;
+    --border-subtle: #f0f3f5;
+    --error-color: #e74c3c;
+    --success-color: #27ae60;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --error: #e74c3c;
+    
+    /* Entity Type Colors */
+    --region-color: rgba(33, 159, 172, 0.1);
+    --department-color: rgba(33, 159, 172, 0.15);
+    --intercommunality-color: rgba(249, 177, 64, 0.1);
+    --commune-color: rgba(249, 177, 64, 0.15);
+    
+    /* Layout - More generous for large screens */
+    --search-width: 75vw;
+    --dashboard-width: 90vw;
+    --container-width: 1200px;
+    --section-spacing: 3rem;
+    
+    /* Spacing Scale */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 20px;
+    --space-2xl: 24px;
+    --space-3xl: 32px;
+    --space-4xl: 40px;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 50%;
+    --border-radius: 8px;
+    --border-radius-large: 12px;
+    
+    /* Typography */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    --font-size-xs: 12px;
+    --font-size-sm: 13px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 8px 25px rgba(33, 159, 172, 0.15);
+    --shadow-primary: 0 2px 8px rgba(33, 159, 172, 0.25);
+    --shadow-accent: 0 2px 6px rgba(249, 177, 64, 0.2);
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --box-shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.15);
+    
+    /* Modern shadows for containers */
+    --shadow-container: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-container-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+    --transition-smooth: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-bounce: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #219fac 0%, #1a7f89 100%);
+    --gradient-accent: linear-gradient(135deg, #f9b140 0%, #e09a2b 100%);
+    --gradient-subtle: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    --gradient-error: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--body-bg);
+    min-height: 100vh;
+}
+
+/* Main Container - No width constraints to allow children to use viewport units */
+.app-container {
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-height: 100vh;
+    width: 100%; /* Full width to allow children viewport units */
+}
+
+/* Header - Full viewport width */
+.main-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a7a85 100%);
+    color: white;
+    padding: 2rem 0;
+    text-align: center;
+    box-shadow: var(--shadow-container);
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+}
+
+.main-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Content Containers - Properly Centered */
+.content-container {
+    background: var(--light-bg);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-container);
+    transition: var(--transition-base);
+    margin: 0 auto; /* Ensure centering */
+    display: block; /* Ensure block-level centering */
+    box-sizing: border-box; /* Include padding/border in width calculations */
+}
+
+.content-container:hover {
+    box-shadow: var(--shadow-container-hover);
+}
+
+/* Utility Classes */
+.centered-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: var(--space-xl);
+}
+
+.loading-placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* No Data Message */
+.no-data-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: var(--space-xl);
+    font-style: italic;
+    background: linear-gradient(135deg, rgba(127, 140, 141, 0.02) 0%, rgba(127, 140, 141, 0.05) 100%);
+    border-radius: var(--radius-md);
+    border: 2px dashed var(--border-light);
+    margin: var(--space-md) 0;
+}
+
+.no-data-message p {
+    margin: 0;
+}
+
+/* Focus styles for accessibility */
+.search-button:focus,
+.search-input:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Large Desktop Optimization */
+@media (min-width: 1400px) {
+    :root {
+        --search-width: 70vw; /* Slightly smaller on very large screens */
+        --dashboard-width: 85vw; /* More contained on very large screens */
+    }
+}
+
+/* Tablet and smaller desktop */
+@media (max-width: 1024px) {
+    :root {
+        --search-width: 80vw; /* Bit wider for tablets */
+        --dashboard-width: 95vw; /* Nearly full width for data */
+    }
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 0 1rem;
+        gap: 1rem;
+    }
+    
+    .main-header {
+        padding: 1.5rem 0;
+    }
+    
+    .main-header h1 {
+        font-size: 2rem;
+    }
+    
+    :root {
+        --search-width: 95vw; /* Nearly full width for mobile */
+        --dashboard-width: 95vw; /* Nearly full width for mobile */
+    }
+}
+
+@media (max-width: 480px) {
+    .main-header h1 {
+        font-size: 1.5rem;
+    }
+}

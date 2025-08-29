@@ -173,7 +173,7 @@ export class SearchHandler {
                 ${communeCountInfo}
                 <div class="selected-entity-item selected-entity-source">
                     <div class="selected-entity-label">Source des données</div>
-                    <div class="selected-entity-value">API MELODI (INSEE), ONISEP</div>
+                    <div class="selected-entity-value">INSEE, ONISEP, France Travail</div>
                 </div>
             </div>
         `;
