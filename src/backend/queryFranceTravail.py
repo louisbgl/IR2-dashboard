@@ -14,6 +14,7 @@ class QueryFranceTravail:
     BASE_API_URL = "https://api.francetravail.io/partenaire/stats-offres-demandes-emploi"
     TOKEN_URL = "https://francetravail.io/connexion/oauth2/access_token"
     DEMANDEURS_ENDPOINT = "/v1/indicateur/stat-demandeurs"
+    PERSPECTIVES_ENDPOINT = "/v1/indicateur/stat-perspective-employeur"
     
     # Scopes required for the API
     SCOPES = "api_stats-offres-demandes-emploiv1 offresetdemandesemploi"
@@ -35,8 +36,10 @@ class QueryFranceTravail:
         self.client_secret = os.getenv('FRANCETRAVAIL_CLIENT_SECRET')
         
         if not self.client_id or not self.client_secret:
-            raise ValueError("FranceTravail credentials not found in environment variables. "
-                           "Please set FRANCETRAVAIL_CLIENT_ID and FRANCETRAVAIL_CLIENT_SECRET.")
+            # Don't raise error during init - handle gracefully in API calls
+            self._credentials_available = False
+        else:
+            self._credentials_available = True
     
     def _get_access_token(self):
         """
@@ -75,19 +78,29 @@ class QueryFranceTravail:
             return self._access_token
             
         except requests.exceptions.Timeout:
-            raise Exception("L'API France Travail n'a pas répondu")
+            raise Exception("timeout")
         except requests.exceptions.HTTPError as err:
             if hasattr(err, 'response') and err.response.status_code in [502, 503, 504]:
-                raise Exception("L'API France Travail n'a pas répondu")
-            raise Exception("L'API France Travail n'a pas répondu")
+                raise Exception("service_unavailable")
+            raise Exception("error")
         except requests.exceptions.RequestException as err:
-            raise Exception("L'API France Travail n'a pas répondu")
+            raise Exception("error")
     
     def _make_api_request(self, endpoint, data, debug=False):
         """
         Make a POST request to the FranceTravail API with authentication.
         """
-        token = self._get_access_token()
+        try:
+            token = self._get_access_token()
+        except Exception as e:
+            error_type = str(e)
+            if error_type == "timeout":
+                return {"status": "timeout", "message": "L'API France Travail n'a pas répondu", "data": None}
+            elif error_type == "service_unavailable":
+                return {"status": "service_unavailable", "message": "L'API France Travail n'a pas répondu", "data": None}
+            else:
+                return {"status": "error", "message": "L'API France Travail n'a pas répondu", "data": None}
+                
         url = f"{self.BASE_API_URL}{endpoint}"
         
         headers = {
@@ -253,7 +266,7 @@ class QueryFranceTravail:
                 "nb_periodes": year_info["count"]
             }
         
-        return {"data": result_data, "status": "success"}
+        return result_data
     
     def query_demandeurs_emploi(self, entity_code, entity_type="epci", debug=False):
         """
@@ -268,7 +281,15 @@ class QueryFranceTravail:
             dict: Processed yearly averaged job seekers data or error message
         """
         
-        # Handle commune-level requests
+        # Check if credentials are available
+        if not self._credentials_available:
+            return {
+                "status": "error",
+                "message": "L'API France Travail n'a pas répondu",
+                "data": None
+            }
+        
+        # Handle commune-level requests - not supported
         if entity_type == "commune":
             return {
                 "status": "not_available",
@@ -280,9 +301,19 @@ class QueryFranceTravail:
         if entity_type not in ["epci", "departement", "region"]:
             raise ValueError("Invalid entity_type. Must be one of: epci, departement, region.")
         
+        # Map entity_type to API territory codes
+        territory_type_map = {
+            "commune": "COM",  # Not supported
+            "epci": "EPCI", 
+            "departement": "DEP", 
+            "region": "REG"
+        }
+        
+        api_territory_type = territory_type_map.get(entity_type, entity_type.upper())
+        
         # Prepare the API request data
         request_data = {
-            "codeTypeTerritoire": entity_type.upper(),
+            "codeTypeTerritoire": api_territory_type,
             "codeTerritoire": entity_code,
             "codeTypeActivite": "CUMUL",
             "codeActivite": "CUMUL",
@@ -296,9 +327,30 @@ class QueryFranceTravail:
             print("Processing all available periods for yearly averages")
         
         # Make the API request
-        response = self._make_api_request(self.DEMANDEURS_ENDPOINT, request_data, debug)
+        try:
+            response = self._make_api_request(self.DEMANDEURS_ENDPOINT, request_data, debug)
+        except Exception as e:
+            error_type = str(e)
+            if error_type == "timeout":
+                return {
+                    "status": "timeout",
+                    "message": "L'API France Travail n'a pas répondu",
+                    "data": None
+                }
+            elif error_type == "service_unavailable":
+                return {
+                    "status": "service_unavailable", 
+                    "message": "L'API France Travail n'a pas répondu",
+                    "data": None
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "L'API France Travail n'a pas répondu", 
+                    "data": None
+                }
         
-        # Handle timeout and service unavailable
+        # Handle timeout and service unavailable from _make_api_request
         if isinstance(response, dict) and response.get('status') in ['timeout', 'service_unavailable', 'error']:
             return response
         
@@ -314,6 +366,158 @@ class QueryFranceTravail:
             print(f"API response has {len(response.get('listeValeursParPeriode', []))} periods")
         
         processed_data = self.process_demandeurs_data(response)
+        
+        if debug:
+            print(f"Processed data keys: {processed_data.get('data', {}).keys()}")
+        
+        return processed_data
+
+    @staticmethod
+    def process_perspective_data(response_data):
+        """
+        Process the perspective data to restructure it by year.
+        Returns a dictionary with territory info at top level and data organized by year.
+        """
+        # Extract top-level territory information from first item
+        if not response_data.get("listeValeursParPeriode"):
+            return {}
+        
+        first_item = response_data["listeValeursParPeriode"][0]
+        
+        processed_data = {
+            "codeTypeTerritoire": first_item["codeTypeTerritoire"],
+            "codeTerritoire": first_item["codeTerritoire"],
+            "libTerritoire": first_item["libTerritoire"],
+            "codeTypePeriode": first_item["codeTypePeriode"],
+            "data": {}
+        }
+        
+        # Process each item and organize by year
+        for item in response_data["listeValeursParPeriode"]:
+            year = item["codePeriode"]
+            
+            # Initialize year if not exists
+            if year not in processed_data["data"]:
+                processed_data["data"][year] = []
+            
+            # Add indicator data for this year
+            indicator_data = {
+                "codeNomenclature": item["codeNomenclature"],
+                "libNomenclature": item["libNomenclature"],
+                "valeurPrincipaleNom": item["valeurPrincipaleNom"],
+                "valeurPrincipaleDecimale": item["valeurPrincipaleDecimale"]
+            }
+            
+            processed_data["data"][year].append(indicator_data)
+        
+        # Sort years and indicators within each year
+        sorted_years = {}
+        for year in sorted(processed_data["data"].keys(), reverse=True):
+            sorted_years[year] = sorted(
+                processed_data["data"][year], 
+                key=lambda x: x["codeNomenclature"]
+            )
+        
+        processed_data["data"] = sorted_years
+        
+        return processed_data
+
+    def query_perspectives_employeur(self, entity_code, entity_type="departement", debug=False):
+        """
+        Query employer perspectives data from the FranceTravail API.
+        
+        Args:
+            entity_code (str): The code of the entity (department, region)
+            entity_type (str): Type of entity ("departement", "region")
+            debug (bool): Enable debug output
+            
+        Returns:
+            dict: Processed perspectives data organized by year or error message
+        """
+        
+        # Check if credentials are available
+        if not self._credentials_available:
+            return {
+                "status": "error",
+                "message": "L'API France Travail n'a pas répondu",
+                "data": None
+            }
+        
+        # Handle commune and EPCI-level requests
+        if entity_type in ["commune", "epci"]:
+            return {
+                "status": "not_available",
+                "message": "Les données de perspectives employeur ne sont pas disponibles au niveau communal ou EPCI",
+                "data": None
+            }
+        
+        # Validate entity type
+        if entity_type not in ["departement", "region"]:
+            raise ValueError("Invalid entity_type. Must be one of: departement, region.")
+        
+        # Map entity_type to API territory codes
+        territory_type_map = {
+            "commune": "COM",  # Not supported
+            "epci": "EPCI",    # Not supported
+            "departement": "DEP", 
+            "region": "REG"
+        }
+        
+        api_entity_type = territory_type_map.get(entity_type, entity_type.upper())
+        
+        # Prepare the API request data
+        request_data = {
+            "codeTypeTerritoire": api_entity_type,
+            "codeTerritoire": entity_code,
+            "codeTypeActivite": "CUMUL",
+            "codeActivite": "CUMUL",
+            "codeTypePeriode": "ANNEE",
+            "codeTypeNomenclature": "TYPE_TENSION"
+        }
+        
+        if debug:
+            print(f"Querying perspectives employeur for {entity_type} {entity_code}")
+        
+        # Make the API request
+        try:
+            response = self._make_api_request(self.PERSPECTIVES_ENDPOINT, request_data, debug)
+        except Exception as e:
+            error_type = str(e)
+            if error_type == "timeout":
+                return {
+                    "status": "timeout",
+                    "message": "L'API France Travail n'a pas répondu",
+                    "data": None
+                }
+            elif error_type == "service_unavailable":
+                return {
+                    "status": "service_unavailable",
+                    "message": "L'API France Travail n'a pas répondu", 
+                    "data": None
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "L'API France Travail n'a pas répondu",
+                    "data": None
+                }
+        
+        # Handle timeout and service unavailable from _make_api_request
+        if isinstance(response, dict) and response.get('status') in ['timeout', 'service_unavailable', 'error']:
+            return response
+        
+        if not response:
+            return {
+                "status": "error",
+                "message": "Failed to query FranceTravail Perspectives API",
+                "data": None
+            }
+        
+        # Process the response
+        if debug:
+            print(f"API response has {len(response.get('listeValeursParPeriode', []))} periods")
+        
+        processed_data = self.process_perspective_data(response)
         
         if debug:
             print(f"Processed data keys: {processed_data.get('data', {}).keys()}")

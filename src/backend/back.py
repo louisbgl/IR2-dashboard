@@ -1,33 +1,62 @@
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from dotenv import load_dotenv
 
 from .franceGeo import FranceGeo
 from .queryINSEE import QueryINSEE
 from .queryONISEP import QueryONISEP
 from .queryFranceTravail import QueryFranceTravail
 
-# Load environment variables from .env file manually
-env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
-if os.path.exists(env_path):
-    with open(env_path, 'r') as f:
-        for line in f:
-            if line.strip() and not line.startswith('#'):
-                key, value = line.strip().split('=', 1)
-                os.environ[key] = value
+# Load environment variables safely
+load_dotenv()
+
+# Configuration
+# Environment-aware CORS handling
+if os.getenv('DEBUG', 'False').lower() == 'true':
+    # Development: Allow common dev ports + production origins
+    dev_ports = [5500, 5501, 5502, 5503, 8000, 8080, 3000, 3001]
+    localhost_origins = [f'http://localhost:{port}' for port in dev_ports] + [f'http://127.0.0.1:{port}' for port in dev_ports]
+    production_origins = os.getenv('CORS_ORIGINS', 'https://ir2.fr,https://ir2-dashboard-x.onrender.com').split(',')
+    CORS_ORIGINS = localhost_origins + production_origins
+else:
+    # Production: Only allowed production origins
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'https://ir2.fr,https://ir2-dashboard-x.onrender.com').split(',')
+API_TIMEOUT = int(os.getenv('API_TIMEOUT', '5'))
+
+# Input validation
+def validate_entity_code(code):
+    """Validate entity code format and length"""
+    if not code or len(code.strip()) == 0:
+        raise ValueError("Entity code is required")
+    
+    code = code.strip()
+    if len(code) > 10:
+        raise ValueError("Entity code too long")
+    
+    # Allow alphanumeric characters and hyphens
+    if not all(c.isalnum() or c in '-_' for c in code):
+        raise ValueError("Invalid entity code format")
+    
+    return code
+
+def validate_entity_type(entity_type):
+    """Validate entity type"""
+    if not entity_type:
+        entity_type = 'commune'
+    
+    valid_types = ['commune', 'epci', 'departement', 'region']
+    if entity_type not in valid_types:
+        raise ValueError(f"Invalid entity type. Must be one of: {', '.join(valid_types)}")
+    
+    return entity_type
 
 app = Flask(__name__)
-CORS(app, origins=[
-    "https://ir2.fr",
-    "https://ir2-dashboard-x.onrender.com",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
-])
+CORS(app, origins=CORS_ORIGINS)
 
-# Get the absolute path to the script directory
+# Get the absolute path to the CSV file
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# Create the path to the CSV file
-csv_path = os.path.join(script_dir, 'data', 'EPCI_2025.csv')
+csv_path = os.getenv('CSV_DATA_PATH', os.path.join(script_dir, 'data', 'EPCI_2025.csv'))
 
 # Create an instance of FranceGeo
 france_geo = FranceGeo(csv_path)
@@ -41,9 +70,62 @@ query_onisep = QueryONISEP(france_geo)
 # Create an instance of QueryFranceTravail
 query_francetravail = QueryFranceTravail(france_geo)
 
+# Generic error handling
+def handle_data_endpoint(query_func, request_args):
+    """Generic handler for data endpoints with validation and error handling"""
+    try:
+        entity_code = validate_entity_code(request_args.get('entity_code'))
+        entity_type = validate_entity_type(request_args.get('entity_type', 'commune'))
+        
+        result = query_func(entity_code, entity_type)
+        return jsonify({
+            'status': 'success',
+            'data': result
+        })
+    except ValueError as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+    except Exception:
+        return jsonify({
+            'status': 'error', 
+            'message': 'API unavailable'
+        }), 200
+
+def handle_francetravail_endpoint(query_func, request_args, default_type='epci'):
+    """Special handler for FranceTravail endpoints with status handling"""
+    try:
+        entity_code = validate_entity_code(request_args.get('entity_code'))
+        entity_type = validate_entity_type(request_args.get('entity_type', default_type))
+        
+        result = query_func(entity_code, entity_type)
+        
+        # Check if result is a status object or raw data
+        if isinstance(result, dict) and 'status' in result:
+            # Result is already a status object (not_available, error, etc.)
+            return jsonify(result), 200
+        else:
+            # Result is raw data, wrap in success format
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+            
+    except ValueError as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+    except Exception:
+        return jsonify({
+            'status': 'error',
+            'message': 'API unavailable'
+        }), 200
+
 @app.route('/')
 def home():
-    return "Welcome to my dashboard backend!"
+    return jsonify({"message": "IR2 Dashboard API", "version": "1.1"})
 
 
 @app.route('/dashboard/search', methods=['GET'])
@@ -52,17 +134,41 @@ def search():
     Search endpoint that returns geographic entities matching the query
     
     Query parameters:
-    - q: The search query
+    - q: The search query (2-100 characters)
     
     Returns:
     - JSON with search results
     """
-    query = request.args.get('q', '')
+    query = request.args.get('q', '').strip()
     
     if not query:
         return jsonify({
             'status': 'error',
             'message': 'Missing query parameter',
+            'results': {
+                'communes': [],
+                'epcis': [],
+                'departements': [],
+                'regions': []
+            }
+        }), 400
+    
+    if len(query) < 2:
+        return jsonify({
+            'status': 'error',
+            'message': 'Query must be at least 2 characters',
+            'results': {
+                'communes': [],
+                'epcis': [],
+                'departements': [],
+                'regions': []
+            }
+        }), 400
+        
+    if len(query) > 100:
+        return jsonify({
+            'status': 'error', 
+            'message': 'Query too long (max 100 characters)',
             'results': {
                 'communes': [],
                 'epcis': [],
@@ -77,17 +183,17 @@ def search():
             'status': 'success',
             'results': results
         })
-    except Exception as e:
+    except Exception:
         return jsonify({
             'status': 'error',
-            'message': str(e),
+            'message': 'Search unavailable',
             'results': {
                 'communes': [],
                 'epcis': [],
                 'departements': [],
                 'regions': []
             }
-        }), 500
+        }), 200
 
     
 @app.route('/dashboard/population', methods=['GET'])
@@ -102,28 +208,7 @@ def population():
     Returns:
     - JSON with population data
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'commune')
-
-    print(f"Received request for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
-    
-    try:
-        result = query_insee.query_population(entity_code, entity_type)
-        return jsonify({
-            'status': 'success',
-            'data': result
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    return handle_data_endpoint(query_insee.query_population, request.args)
     
 
 @app.route('/dashboard/pcs', methods=['GET'])
@@ -138,28 +223,7 @@ def pcs():
     Returns:
     - JSON with PCS data
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'commune')
-
-    print(f"Received request for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
-    
-    try:
-        result = query_insee.query_pcs(entity_code, entity_type)
-        return jsonify({
-            'status': 'success',
-            'data': result
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    return handle_data_endpoint(query_insee.query_pcs, request.args)
     
 
 @app.route('/dashboard/diploma', methods=['GET'])
@@ -174,28 +238,7 @@ def diploma():
     Returns:
     - JSON with diplomas data
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'commune')
-
-    print(f"Received request for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
-    
-    try:
-        result = query_insee.query_diplomas(entity_code, entity_type)
-        return jsonify({
-            'status': 'success',
-            'data': result
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    return handle_data_endpoint(query_insee.query_diplomas, request.args)
 
 
 @app.route('/dashboard/employment', methods=['GET'])
@@ -215,28 +258,7 @@ def employment():
       - nombre_chomeurs: Unemployed population
       - taux_chomage: Unemployment rate
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'commune')
-
-    print(f"Received request for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
-    
-    try:
-        result = query_insee.query_employment(entity_code, entity_type)
-        return jsonify({
-            'status': 'success',
-            'data': result
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    return handle_data_endpoint(query_insee.query_employment, request.args)
 
 
 @app.route('/dashboard/higher_education', methods=['GET'])
@@ -255,28 +277,7 @@ def higher_education():
       - type_counts: Counts of establishments by type
       - coordinates: List of coordinates for each establishment
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'commune')
-
-    print(f"Received request for higher education data for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
-    
-    try:
-        result = query_onisep.query_enseignement(entity_code, entity_type)
-        return jsonify({
-            'status': 'success',
-            'data': result
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    return handle_data_endpoint(query_onisep.query_enseignement, request.args)
 
 
 @app.route('/dashboard/formations', methods=['GET'])
@@ -295,28 +296,7 @@ def formations():
       - type_counts: Counts of courses by type
       - coordinates: List of coordinates for each course
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'commune')
-
-    print(f"Received request for training courses data for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
-    
-    try:
-        result = query_onisep.query_formations(entity_code, entity_type)
-        return jsonify({
-            'status': 'success',
-            'data': result
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    return handle_data_endpoint(query_onisep.query_formations, request.args)
 
 
 @app.route('/dashboard/job_seekers', methods=['GET'])
@@ -331,38 +311,32 @@ def job_seekers():
     Returns:
     - JSON with yearly averaged job seekers data or appropriate error/not available message
     """
-    entity_code = request.args.get('entity_code')
-    entity_type = request.args.get('entity_type', 'epci')
+    return handle_francetravail_endpoint(query_francetravail.query_demandeurs_emploi, request.args, 'epci')
 
-    print(f"Received request for demandeurs emploi data for entity_code: {entity_code}, entity_type: {entity_type}")
-
-    if not entity_code:
-        return jsonify({
-            'status': 'error',
-            'message': 'Missing entity_code parameter'
-        }), 400
+@app.route('/dashboard/perspectives', methods=['GET'])
+def perspectives():
+    """
+    Endpoint to get employer perspectives data for a specific entity
     
-    try:
-        result = query_francetravail.query_demandeurs_emploi(entity_code, entity_type)
-        
-        # Handle different response statuses
-        if result['status'] == 'not_available':
-            return jsonify(result), 200  # Return 200 with not_available status for communes
-        elif result['status'] == 'error':
-            return jsonify(result), 500
-        else:
-            return jsonify(result), 200
-            
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    Query parameters:
+    - entity_code: The code of the entity (departement, region)
+    - entity_type: Type of entity ("departement", "region")
+    
+    Returns:
+    - JSON with employer perspectives data organized by year or appropriate error/not available message
+    """
+    return handle_francetravail_endpoint(query_francetravail.query_perspectives_employeur, request.args, 'departement')
 
 @app.route('/dashboard/health', methods=['GET'])
 def health_check():
-    """Simple health check endpoint"""
-    return jsonify({'status': 'ok'})
+    """Health check endpoint with system status"""
+    return jsonify({
+        'status': 'ok',
+        'version': '1.1',
+        'france_geo_loaded': len(france_geo.communes) > 0,
+        'total_communes': len(france_geo.communes)
+    })
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
